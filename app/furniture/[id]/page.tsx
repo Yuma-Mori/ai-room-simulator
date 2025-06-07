@@ -3,14 +3,13 @@ import { notFound } from "next/navigation";
 import { furnitureData } from "@/data/furniture";
 
 interface FurnitureDetailProps {
-  params: Promise<{
+  params: {
     id: string;
-  }>;
+  };
 }
 
-export default async function FurnitureDetail({ params }: FurnitureDetailProps) {
-  const { id } = await params;
-  const furniture = furnitureData.find((item) => item.id === id);
+export default function FurnitureDetail({ params }: FurnitureDetailProps) {
+  const furniture = furnitureData.find((item) => item.id === params.id);
 
   if (!furniture) {
     notFound();
