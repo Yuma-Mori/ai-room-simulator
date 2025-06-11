@@ -114,6 +114,9 @@ export default async function FurnitureDetail({ params }: FurnitureDetailProps) 
 
             {/* Action Buttons */}
             <div className="space-y-4">
+              <button className="w-full py-4 px-6 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                お部屋シミュレータで家具を試す
+              </button>
               <button
                 disabled={!furniture.inStock}
                 className={`w-full py-4 px-6 rounded-lg font-medium transition-colors ${

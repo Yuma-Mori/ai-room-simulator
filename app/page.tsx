@@ -12,11 +12,14 @@ export default async function Home() {
             <h1 className="text-2xl font-light text-gray-900 tracking-wide">
               FURNITURE COLLECTION
             </h1>
-            <nav className="hidden md:flex space-x-8">
+            <nav className="hidden md:flex items-center space-x-8">
               <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">ソファ</a>
               <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">テーブル</a>
               <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">チェア</a>
               <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">収納</a>
+              <button className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
+                お部屋シミュレータ
+              </button>
             </nav>
           </div>
         </div>
