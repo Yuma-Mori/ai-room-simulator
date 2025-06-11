@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { furnitureData } from "@/data/furniture";
+import { fetchFurnitureById } from "@/lib/api";
 
 interface FurnitureDetailProps {
   params: {
@@ -8,12 +8,14 @@ interface FurnitureDetailProps {
   };
 }
 
-export default function FurnitureDetail({ params }: FurnitureDetailProps) {
-  const furniture = furnitureData.find((item) => item.id === params.id);
+export default async function FurnitureDetail({ params }: FurnitureDetailProps) {
+  const response = await fetchFurnitureById(params.id);
 
-  if (!furniture) {
+  if (!response.success || !response.data) {
     notFound();
   }
+
+  const furniture = response.data;
 
   return (
     <div className="min-h-screen bg-white">
