@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { furnitureData } from "@/data/furniture";
+import { fetchFurnitureList } from "@/lib/api";
+import { Furniture } from "@/types/furniture";
 
-export default function Home() {
+export default async function Home() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -37,8 +38,39 @@ export default function Home() {
       {/* Products Grid */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {furnitureData.map((furniture) => (
+          <FurnitureGrid />
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-50 border-t border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center">
+            <h3 className="text-lg font-light text-gray-900 mb-4">FURNITURE COLLECTION</h3>
+            <p className="text-gray-600 text-sm">
+              上質な家具で、あなたの暮らしをより豊かに
+            </p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+async function FurnitureGrid() {
+  const response = await fetchFurnitureList();
+  
+  if (!response.success || !response.data) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-600">商品の読み込みに失敗しました</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {response.data.map((furniture) => (
               <Link
                 key={furniture.id}
                 href={`/furniture/${furniture.id}`}
@@ -72,21 +104,6 @@ export default function Home() {
                 </div>
               </Link>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-50 border-t border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center">
-            <h3 className="text-lg font-light text-gray-900 mb-4">FURNITURE COLLECTION</h3>
-            <p className="text-gray-600 text-sm">
-              上質な家具で、あなたの暮らしをより豊かに
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
