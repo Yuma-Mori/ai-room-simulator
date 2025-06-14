@@ -1,41 +1,56 @@
+"use client";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { fetchFurnitureById } from "@/lib/api";
+import { Furniture } from "@/types/furniture";
 
-interface FurnitureDetailProps {
-  params: {
-    id: string;
-  };
-}
+import Header from "@/components/organisms/Header";
+import Footer from "@/components/molecules/Footer";
 
-export default async function FurnitureDetail({ params }: FurnitureDetailProps) {
-  // APIから家具の詳細を取得
-  const response = await fetchFurnitureById(params.id);
+export default function FurnitureDetail() {
+  const params = useParams<{ id: string }>();
+  const router = useRouter();
+  const [furniture, setFurniture] = useState<Furniture | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  if (!response.success || !response.data) {
-    notFound();
+  useEffect(() => {
+    if (!params?.id) return;
+    fetchFurnitureById(params.id)
+      .then((response) => {
+        if (response.success && response.data) {
+          setFurniture(response.data);
+        } else {
+          setError(true);
+        }
+      })
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
+  }, [params?.id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-600">読み込み中...</p>
+      </div>
+    );
   }
 
-  const furniture = response.data;
+  if (error || !furniture) {
+    // NotFoundの代わりにトップへリダイレクト
+    if (typeof window !== "undefined") router.replace("/");
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-600">商品が見つかりませんでした</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="text-2xl font-light text-gray-900 tracking-wide hover:text-gray-600 transition-colors">
-              FURNITURE COLLECTION
-            </Link>
-            <nav className="hidden md:flex space-x-8">
-              <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">ソファ</a>
-              <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">テーブル</a>
-              <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">チェア</a>
-              <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">収納</a>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Breadcrumb */}
       <div className="bg-gray-50 border-b border-gray-100">
@@ -94,19 +109,19 @@ export default async function FurnitureDetail({ params }: FurnitureDetailProps) 
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-gray-50 p-4 rounded-lg text-center">
                   <div className="text-2xl font-light text-gray-900 mb-1">
-                    {furniture.dimensions.width}
+                    {furniture.dimensions?.width}
                   </div>
                   <div className="text-sm text-gray-600">幅 (cm)</div>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg text-center">
                   <div className="text-2xl font-light text-gray-900 mb-1">
-                    {furniture.dimensions.height}
+                    {furniture.dimensions?.height}
                   </div>
                   <div className="text-sm text-gray-600">高さ (cm)</div>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg text-center">
                   <div className="text-2xl font-light text-gray-900 mb-1">
-                    {furniture.dimensions.depth}
+                    {furniture.dimensions?.depth}
                   </div>
                   <div className="text-sm text-gray-600">奥行き (cm)</div>
                 </div>
@@ -135,18 +150,7 @@ export default async function FurnitureDetail({ params }: FurnitureDetailProps) 
           </div>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="bg-gray-50 border-t border-gray-100 mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center">
-            <h3 className="text-lg font-light text-gray-900 mb-4">FURNITURE COLLECTION</h3>
-            <p className="text-gray-600 text-sm">
-              上質な家具で、あなたの暮らしをより豊かに
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
