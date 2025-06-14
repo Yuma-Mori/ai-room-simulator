@@ -148,45 +148,53 @@ const SimulateRoomArrangement: React.FC = () => {
   // カメラ視点切り替え用state
   const [isViewCenter, setIsViewCenter] = useState(false);
 
-  // 部屋の作成
-  const textureLoader = new THREE.TextureLoader();
-
-  const floorTexture = textureLoader.load('/textures/flooring.png');
-  const floorMaterial = new THREE.MeshStandardMaterial({ map: floorTexture });
-
-  const wallTexture = textureLoader.load('/textures/wallpaper_original.png'); 
-  const wallMaterial = new THREE.MeshStandardMaterial({ map: wallTexture });
-
-  const floorGeometry = new THREE.PlaneGeometry(roomDimensions.width, roomDimensions.depth)
-  const leftWallGeometry = new THREE.PlaneGeometry(roomDimensions.width, roomDimensions.height)
-  const rightWallGeometry = new THREE.PlaneGeometry(roomDimensions.depth, roomDimensions.height)
-
-  const floor = new THREE.Mesh(floorGeometry, floorMaterial)
-  floor.rotation.x = -Math.PI/2
-  floor.position.set(roomDimensions.width/2, 0, roomDimensions.depth/2)
-  const floorRef = useRef<THREE.Mesh>(floor)
-
-  const leftWall = new THREE.Mesh(leftWallGeometry, wallMaterial)
-  leftWall.position.set(roomDimensions.width, roomDimensions.height/2, roomDimensions.depth)
-  const leftWallRef = useRef<THREE.Mesh>(leftWall)
-
-  const rightWall = new THREE.Mesh(rightWallGeometry, wallMaterial)
-  rightWall.rotation.y = Math.PI /2
-  rightWall.position.set(-roomDimensions.width/2, roomDimensions.height/2, roomDimensions.depth/2)
-  const rightWallRef = useRef<THREE.Mesh>(rightWall)
-
-  const diagonalLeftWall = new THREE.Mesh(leftWallGeometry, wallMaterial);
-  diagonalLeftWall.rotation.y = Math.PI
-  diagonalLeftWall.position.set(roomDimensions.width/2, roomDimensions.height/2,  roomDimensions.depth)
-  const diagonalLeftWallRef = useRef<THREE.Mesh>(diagonalLeftWall)
-
-  const diagonalRightWall = new THREE.Mesh(rightWallGeometry, wallMaterial)
-  diagonalRightWall.rotation.y = -Math.PI/2
-  diagonalRightWall.position.set(roomDimensions.width, roomDimensions.height/2, roomDimensions.depth/2)
-  const diagonalRightWallRef = useRef<THREE.Mesh>(diagonalRightWall)
+  const floorRef = useRef<THREE.Mesh | null>(null)
+  const leftWallRef = useRef<THREE.Mesh | null>(null)
+  const rightWallRef = useRef<THREE.Mesh | null>(null)
+  const diagonalLeftWallRef = useRef<THREE.Mesh | null>(null)
+  const diagonalRightWallRef = useRef<THREE.Mesh | null>(null)
 
   useEffect(() => {
     if (!canvasRef.current) return    
+
+    // 部屋の作成
+    const textureLoader = new THREE.TextureLoader();
+
+    const floorTexture = textureLoader.load('/textures/flooring.png');
+    const floorMaterial = new THREE.MeshStandardMaterial({ map: floorTexture });
+
+    const wallTexture = textureLoader.load('/textures/wallpaper_original.png'); 
+    const wallMaterial = new THREE.MeshStandardMaterial({ map: wallTexture });
+
+    const floorGeometry = new THREE.PlaneGeometry(roomDimensions.width, roomDimensions.depth)
+    const leftWallGeometry = new THREE.PlaneGeometry(roomDimensions.width, roomDimensions.height)
+    const rightWallGeometry = new THREE.PlaneGeometry(roomDimensions.depth, roomDimensions.height)
+
+    const floor = new THREE.Mesh(floorGeometry, floorMaterial)
+    floor.rotation.x = -Math.PI/2
+    floor.position.set(roomDimensions.width/2, 0, roomDimensions.depth/2)
+
+    const leftWall = new THREE.Mesh(leftWallGeometry, wallMaterial)
+    leftWall.position.set(roomDimensions.width, roomDimensions.height/2, roomDimensions.depth)
+    
+
+    const rightWall = new THREE.Mesh(rightWallGeometry, wallMaterial)
+    rightWall.rotation.y = Math.PI /2
+    rightWall.position.set(-roomDimensions.width/2, roomDimensions.height/2, roomDimensions.depth/2)
+
+    const diagonalLeftWall = new THREE.Mesh(leftWallGeometry, wallMaterial);
+    diagonalLeftWall.rotation.y = Math.PI
+    diagonalLeftWall.position.set(roomDimensions.width/2, roomDimensions.height/2,  roomDimensions.depth)
+
+    const diagonalRightWall = new THREE.Mesh(rightWallGeometry, wallMaterial)
+    diagonalRightWall.rotation.y = -Math.PI/2
+    diagonalRightWall.position.set(roomDimensions.width, roomDimensions.height/2, roomDimensions.depth/2)
+
+    floorRef.current = floor
+    leftWallRef.current = leftWall
+    rightWallRef.current = rightWall
+    diagonalLeftWallRef.current = diagonalLeftWall
+    diagonalRightWallRef.current = diagonalRightWall
 
     // シーン
     const scene = new THREE.Scene()
@@ -372,7 +380,7 @@ const SimulateRoomArrangement: React.FC = () => {
 
   useEffect(()=>{
     // 部屋の寸法変更フック
-    if (!sceneRef.current || !orbitControlsRef.current) return
+    if (!sceneRef.current || !orbitControlsRef.current || !floorRef.current || !leftWallRef.current || !rightWallRef.current || !diagonalLeftWallRef.current || !diagonalRightWallRef.current) return
 
     // 壁の寸法変更
     floorRef.current.geometry.dispose()
