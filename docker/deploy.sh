@@ -5,7 +5,7 @@ set -e
 
 PROJECT_ID=${1:-"your-project-id"}
 SERVICE_NAME="ai-room-simulator"
-REGION="us-central1"
+REGION="asia-northeast1"
 IMAGE_NAME="gcr.io/$PROJECT_ID/$SERVICE_NAME"
 
 echo "🚀 Deploying AI Room Simulator to Google Cloud Run"
