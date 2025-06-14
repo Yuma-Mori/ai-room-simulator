@@ -10,10 +10,7 @@ export default function Header() {
             FURNITURE COLLECTION
           </Link>
           <nav className="hidden md:flex space-x-8">
-            <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">ソファ</a>
-            <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">テーブル</a>
-            <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">チェア</a>
-            <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">収納</a>
+            <Link href="/room" className="text-gray-600 hover:text-gray-900 transition-colors">3Dシミュレーター</Link>
           </nav>
         </div>
       </div>
