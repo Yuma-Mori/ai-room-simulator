@@ -9,6 +9,7 @@ interface FurnitureDetailProps {
 }
 
 export default async function FurnitureDetail({ params }: FurnitureDetailProps) {
+  // APIから家具の詳細を取得
   const response = await fetchFurnitureById(params.id);
 
   if (!response.success || !response.data) {
