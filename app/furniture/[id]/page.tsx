@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { fetchFurnitureById } from "@/lib/api";
+// import { fetchFurnitureById } from "@/lib/api";
 import { Furniture } from "@/types/furniture";
 
 import Header from "@/components/organisms/Header";
@@ -19,16 +19,16 @@ export default function FurnitureDetail() {
 
   useEffect(() => {
     if (!params?.id) return;
-    fetchFurnitureById(params.id)
-      .then((response) => {
-        if (response.success && response.data) {
-          setFurniture(response.data);
-        } else {
-          setError(true);
-        }
-      })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
+    // fetchFurnitureById(params.id)
+    //   .then((response) => {
+    //     if (response.success && response.data) {
+    //       setFurniture(response.data);
+    //     } else {
+    //       setError(true);
+    //     }
+    //   })
+    //   .catch(() => setError(true))
+    //   .finally(() => setLoading(false));
   }, [params?.id]);
 
   if (loading) {
