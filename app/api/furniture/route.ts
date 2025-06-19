@@ -21,6 +21,7 @@ export async function GET() {
       queueLimit: 0
   });
   const furnitureData = await pool.query('SELECT * FROM products');
+  console.log("furnitureData", furnitureData);
 
   return NextResponse.json({
     success: true,
