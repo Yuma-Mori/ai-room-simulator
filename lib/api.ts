@@ -9,7 +9,10 @@ export interface ApiResponse<T> {
 }
 
 export async function fetchFurnitureList(req?: NextRequest): Promise<ApiResponse<Furniture[]>> {
-  try {
+  if (typeof window === 'undefined') {
+      return { success: false, error: 'Client-side only' };
+  }
+  try {    
     const response = await fetch('/api/furniture');
     const data = await response.json();
     return data;
