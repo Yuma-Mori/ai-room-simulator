@@ -1,6 +1,5 @@
 "use client";
 import Link from "next/link";
-// import { fetchFurnitureList } from "@/lib/api";
 import { Furniture } from "@/types/furniture";
 import { useEffect, useState } from "react";
 
@@ -47,16 +46,21 @@ function FurnitureGrid() {
 
   useEffect(() => {
     // 商品一覧をAPIから取得
-    // fetchFurnitureList()
-    //   .then((response) => {
-    //     if (response.success && response.data) {
-    //       setFurnitureList(response.data);
-    //     } else {
-    //       setError(true);
-    //     }
-    //   })
-    //   .catch(() => setError(true))
-    //   .finally(() => setLoading(false));
+    const fetchData = async () => {
+      try {
+        const res = await fetch('/api/furniture');
+        if (!res.ok) throw new Error('Fetch failed');
+        const json = await res.json();
+        setFurnitureList(json.data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setError(true)
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   if (loading) {
