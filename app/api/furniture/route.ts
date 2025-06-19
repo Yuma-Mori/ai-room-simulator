@@ -13,7 +13,8 @@ export async function GET() {
     const pool = mysql.createPool({
         ...clientOpts,
         user: "root",
-        password: process.env.DB_PASS,
+        // password: process.env.DB_PASS,
+        password: "ZX.#?&`FKIp[KLy7",
         database: "room_simulator",
         waitForConnections: true,
         connectionLimit: 10,
