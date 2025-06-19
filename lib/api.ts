@@ -24,7 +24,7 @@ export async function fetchFurnitureList(req?: NextRequest): Promise<ApiResponse
 export async function fetchFurnitureById(id: string): Promise<ApiResponse<Furniture>> {
   try {
     const baseUrl = typeof window === 'undefined' ? 'http://localhost:3000' : '';
-    const response = await fetch(`${baseUrl}/api/furniture/${id}`);
+    const response = await fetch(`${baseUrl}/api/product/${id}`);
     const data = await response.json();
     return data;
   } catch (error) {
