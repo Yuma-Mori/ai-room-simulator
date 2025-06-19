@@ -369,17 +369,62 @@ const SimulateRoomArrangement: React.FC = () => {
 
     // クリーンアップ関数
     return () => {
-      // メモリリークを防ぐためにジオメトリとマテリアルを破棄。 ToDo：作った分だけ消すようにする。
-      renderer.dispose()
-      window.removeEventListener('resize', handleResize);
+      // メモリリークを防ぐためにジオメトリとマテリアルを破棄。
+      // アニメーションフレームのキャンセル
       if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current)
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+
+      // イベントリスナーの削除
+      if (canvasRef.current) {
+        canvasRef.current.removeEventListener('click', attachTransformControls);
+        canvasRef.current.removeEventListener('dblclick', detachTransformControls);
+      }
+      window.removeEventListener('resize', handleResize);
+
+      // Three.jsリソースの解放
+      // メッシュやマテリアルのdispose
+      [
+        floorRef.current,
+        leftWallRef.current,
+        rightWallRef.current,
+        diagonalLeftWallRef.current,
+        diagonalRightWallRef.current,
+        ...(furnitureListRef.current.map(f => f.mesh))
+      ].forEach(mesh => {
+        if (mesh) {
+          if (mesh.geometry) mesh.geometry.dispose();
+          if (Array.isArray(mesh.material)) {
+            mesh.material.forEach(mat => mat && typeof mat.dispose === "function" && mat.dispose());
+          } else if (mesh.material && typeof mesh.material.dispose === "function") {
+            mesh.material.dispose()
+          }
+        }
+      });
+
+      // Rendererのdispose
+      if (rendererRef.current) {
+        rendererRef.current.dispose()
+        rendererRef.current.renderLists.dispose()
+      }
+
+      // コントロールのdispose
+      if (orbitControlsRef.current) {
+        orbitControlsRef.current.dispose()
+      }
+      if (transformControlsRef.current) {
+        transformControlsRef.current.dispose()
+      }
+
+      // シーンのdispose
+      if (sceneRef.current) {
+        sceneRef.current.clear()
       }
     }
   }, [])
 
-  useEffect(()=>{
-    // 部屋の寸法変更フック
+  // 部屋の寸法変更フック
+  useEffect(()=>{    
     if (!sceneRef.current || !orbitControlsRef.current || !floorRef.current || !leftWallRef.current || !rightWallRef.current || !diagonalLeftWallRef.current || !diagonalRightWallRef.current) return
 
     // 壁の寸法変更
