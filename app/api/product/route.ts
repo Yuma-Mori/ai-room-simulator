@@ -6,7 +6,6 @@ import mysql from 'mysql2/promise';
 const cloudSqlConnectionName = "roomsimulator-460108:asia-northeast1:room-simulator-db"
 
 export async function GET() {
-  await new Promise(resolve => setTimeout(resolve, 100));
   const connector = new Connector();
   const clientOpts = await connector.getOptions({
       instanceConnectionName: cloudSqlConnectionName
