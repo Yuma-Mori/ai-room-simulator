@@ -10,7 +10,7 @@ export interface ApiResponse<T> {
 
 export async function fetchFurnitureList(req?: NextRequest): Promise<ApiResponse<Furniture[]>> {
   try {
-    const response = await fetch('/api/furniture');
+    const response = await fetch('/api/product');
     const data = await response.json();
     return data;
   } catch (error) {
