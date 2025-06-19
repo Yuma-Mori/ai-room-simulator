@@ -12,7 +12,7 @@ export async function fetchFurnitureList(): Promise<ApiResponse<Furniture[]>> {
       return { success: false, error: 'Client-side only' };
   }
   try {    
-    const response = await fetch('/api/furniture');
+    const response = await fetch('/api/product');
     const data = await response.json();
     return data;
   } catch (error) {
@@ -28,7 +28,7 @@ export async function fetchFurnitureById(id: string): Promise<ApiResponse<Furnit
       return { success: false, error: 'Client-side only' };
   }
   try {
-    const response = await fetch(`api/furniture/${id}`);
+    const response = await fetch(`api/product/${id}`);
     const data = await response.json();
     return data;
   } catch (error) {

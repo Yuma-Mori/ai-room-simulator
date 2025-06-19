@@ -1,3 +1,4 @@
+"use client"
 const HelpModal: React.FC<{ open: boolean; onClose: () => void }> = ({ open, onClose }) => {
   if (!open) return null;
   return (
