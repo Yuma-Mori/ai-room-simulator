@@ -18,6 +18,8 @@ import HelpModal from "@/components/molecules/HelpModal";
 import PhotographModal from "@/components/organisms/PhotographModal";
 import * as constants from "@/constants/roomSimulatorConstants";
 
+export const dynamic = 'force-dynamic';
+
 type furnitureInfo = {
   id: string
   label: string

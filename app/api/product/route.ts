@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { furnitureData as sampleData } from '../../../data/furniture';
+// import { furnitureData as sampleData } from '../../../data/furniture';
 import { Connector } from '@google-cloud/cloud-sql-connector';
 import mysql from 'mysql2/promise';
 
@@ -25,13 +25,6 @@ export async function GET() {
     });
     const furnitureData = await pool.query('SELECT * FROM products');
     console.log("furnitureData", furnitureData);
-    if (!furnitureData ) {
-        return NextResponse.json({
-        success: true,
-        data: sampleData,
-        total: sampleData.length
-      });
-    }
 
     return NextResponse.json({
       success: true,
