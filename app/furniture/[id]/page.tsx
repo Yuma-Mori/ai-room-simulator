@@ -111,19 +111,19 @@ export default function FurnitureDetail() {
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-gray-50 p-4 rounded-lg text-center">
                   <div className="text-2xl font-light text-gray-900 mb-1">
-                    {furniture.dimensions?.width}
+                    {furniture.width}
                   </div>
                   <div className="text-sm text-gray-600">幅 (cm)</div>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg text-center">
                   <div className="text-2xl font-light text-gray-900 mb-1">
-                    {furniture.dimensions?.height}
+                    {furniture.height}
                   </div>
                   <div className="text-sm text-gray-600">高さ (cm)</div>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg text-center">
                   <div className="text-2xl font-light text-gray-900 mb-1">
-                    {furniture.dimensions?.depth}
+                    {furniture.depth}
                   </div>
                   <div className="text-sm text-gray-600">奥行き (cm)</div>
                 </div>
