@@ -10,7 +10,7 @@ export interface ApiResponse<T> {
 
 export async function fetchFurnitureList(req?: NextRequest): Promise<ApiResponse<Furniture[]>> {
   try {
-    const response = await fetch('/api/product');
+    const response = await fetch('/api/furniture');
     const data = await response.json();
     return data;
   } catch (error) {
@@ -24,7 +24,7 @@ export async function fetchFurnitureList(req?: NextRequest): Promise<ApiResponse
 export async function fetchFurnitureById(id: string): Promise<ApiResponse<Furniture>> {
   try {
     const baseUrl = typeof window === 'undefined' ? 'http://localhost:3000' : '';
-    const response = await fetch(`${baseUrl}/api/product/${id}`);
+    const response = await fetch(`${baseUrl}/api/furniture/${id}`);
     const data = await response.json();
     return data;
   } catch (error) {
