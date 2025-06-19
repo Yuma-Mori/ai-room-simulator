@@ -1,5 +1,4 @@
 import { Furniture } from '@/types/furniture';
-import { NextRequest } from 'next/server';
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -8,7 +7,7 @@ export interface ApiResponse<T> {
   total?: number;
 }
 
-export async function fetchFurnitureList(req?: NextRequest): Promise<ApiResponse<Furniture[]>> {
+export async function fetchFurnitureList(): Promise<ApiResponse<Furniture[]>> {
   if (typeof window === 'undefined') {
       return { success: false, error: 'Client-side only' };
   }
