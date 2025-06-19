@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 import Header from "@/components/organisms/Header";
 import Footer from "@/components/molecules/Footer";
 
+export const dynamic = 'force-dynamic';
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-white">
