@@ -5,7 +5,6 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  await new Promise(resolve => setTimeout(resolve, 100));
   
   const furniture = furnitureData.find(item => item.id === params.id);
   
