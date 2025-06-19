@@ -7,6 +7,7 @@ import { Furniture } from "@/types/furniture";
 
 import Header from "@/components/organisms/Header";
 import Footer from "@/components/molecules/Footer";
+
 export const dynamic = 'force-dynamic';
 
 export default function FurnitureDetail() {

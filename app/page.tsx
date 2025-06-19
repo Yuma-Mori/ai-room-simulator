@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { fetchFurnitureList } from "@/lib/api";
+// import { fetchFurnitureList } from "@/lib/api";
 import { Furniture } from "@/types/furniture";
 import { useEffect, useState } from "react";
 
@@ -47,16 +47,16 @@ function FurnitureGrid() {
 
   useEffect(() => {
     // 商品一覧をAPIから取得
-    fetchFurnitureList()
-      .then((response) => {
-        if (response.success && response.data) {
-          setFurnitureList(response.data);
-        } else {
-          setError(true);
-        }
-      })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
+    // fetchFurnitureList()
+    //   .then((response) => {
+    //     if (response.success && response.data) {
+    //       setFurnitureList(response.data);
+    //     } else {
+    //       setError(true);
+    //     }
+    //   })
+    //   .catch(() => setError(true))
+    //   .finally(() => setLoading(false));
   }, []);
 
   if (loading) {

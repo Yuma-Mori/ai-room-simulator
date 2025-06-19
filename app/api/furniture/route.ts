@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-// import { furnitureData as sampleData } from '../../../data/furniture';
 import { Connector } from '@google-cloud/cloud-sql-connector';
 import mysql from 'mysql2/promise';
 
@@ -11,8 +10,6 @@ export async function GET() {
     const clientOpts = await connector.getOptions({
         instanceConnectionName: cloudSqlConnectionName
     });
-    console.log("furnitureData", process.env.DB_PASS);
-
     const pool = mysql.createPool({
         ...clientOpts,
         user: "root",
@@ -24,7 +21,6 @@ export async function GET() {
         connectTimeout: 10000,      // コネクション確立のタイムアウト（例: 10秒）
     });
     const furnitureData = await pool.query('SELECT * FROM products');
-    console.log("furnitureData", furnitureData);
 
     return NextResponse.json({
       success: true,
