@@ -6,7 +6,6 @@ import mysql from 'mysql2/promise';
 const cloudSqlConnectionName = "***REMOVED***"
 
 export async function GET() {
-  await new Promise(resolve => setTimeout(resolve, 100));
   const connector = new Connector();
   const clientOpts = await connector.getOptions({
       instanceConnectionName: cloudSqlConnectionName
