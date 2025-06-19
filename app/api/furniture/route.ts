@@ -2,10 +2,9 @@ import { NextResponse } from 'next/server';
 import { Connector } from '@google-cloud/cloud-sql-connector';
 import mysql from 'mysql2/promise';
 
-const cloudSqlConnectionName = "roomsimulator-460108:asia-northeast1:room-simulator-db"
-
 export async function GET() {
   try {
+    const cloudSqlConnectionName = "roomsimulator-460108:asia-northeast1:room-simulator-db"
     const connector = new Connector();
     const clientOpts = await connector.getOptions({
         instanceConnectionName: cloudSqlConnectionName
@@ -13,8 +12,7 @@ export async function GET() {
     const pool = mysql.createPool({
         ...clientOpts,
         user: "root",
-        // password: process.env.DB_PASS,
-        password: "ZX.#?&`FKIp[KLy7",
+        password: process.env.DB_PASS,
         database: "room_simulator",
         waitForConnections: true,
         connectionLimit: 10,

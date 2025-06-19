@@ -19,16 +19,20 @@ export default function FurnitureDetail() {
 
   useEffect(() => {
     if (!params?.id) return;
-    // fetchFurnitureById(params.id)
-    //   .then((response) => {
-    //     if (response.success && response.data) {
-    //       setFurniture(response.data);
-    //     } else {
-    //       setError(true);
-    //     }
-    //   })
-    //   .catch(() => setError(true))
-    //   .finally(() => setLoading(false));
+    const fetchData = async () => {
+      try {
+        const res = await fetch(`/api/furniture/${params.id}`);
+        if (!res.ok) throw new Error('Fetch failed');
+        const json = await res.json();
+        setFurniture(json.data)
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setError(true)
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, [params?.id]);
 
   if (loading) {
