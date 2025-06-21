@@ -9,5 +9,5 @@ export interface Furniture {
   height: number;
   depth: number;
   category: string;
-  inStock: boolean;
+  stock: number;
 }

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import Header from "@/components/organisms/Header";
 import Footer from "@/components/molecules/Footer";
+import * as constants from "@/constants/roomSimulatorConstants";
 
 export const dynamic = 'force-dynamic';
 
@@ -48,10 +49,11 @@ function FurnitureGrid() {
     // 商品一覧をAPIから取得
     const fetchData = async () => {
       try {
-        const res = await fetch('/api/furniture');
+        const res = await fetch('https://test-func-404451730547.asia-northeast1.run.app');
         if (!res.ok) throw new Error('Fetch failed');
         const json = await res.json();
-        setFurnitureList(json.data);
+        console.log('Fetched furniture data:', json);
+        setFurnitureList(json);
       } catch (error) {
         console.error('Error fetching data:', error);
         setError(true)
@@ -88,10 +90,18 @@ function FurnitureGrid() {
           className="group block bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100"
         >
           <div className="aspect-square bg-gray-100 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-              <span className="text-gray-500 text-sm">画像準備中</span>
-            </div>
-            {!furniture.inStock && (
+            {furniture.id ? (
+              <img
+                src={`${constants.cdnBaseUrl}/products/${furniture.id}/product.png`}
+                alt={furniture.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+                <span className="text-gray-500 text-sm">画像準備中</span>
+              </div>
+            )}
+            {!furniture.stock && (
               <div className="absolute top-4 right-4 bg-gray-900 text-white px-3 py-1 text-xs rounded-full">
                 売り切れ
               </div>

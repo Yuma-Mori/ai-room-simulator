@@ -162,10 +162,10 @@ const SimulateRoomArrangement: React.FC = () => {
     // 部屋の作成
     const textureLoader = new THREE.TextureLoader();
 
-    const floorTexture = textureLoader.load('/textures/flooring.png');
+    const floorTexture = textureLoader.load(constants.flooringPath);
     const floorMaterial = new THREE.MeshStandardMaterial({ map: floorTexture });
 
-    const wallTexture = textureLoader.load('/textures/wallpaper_original.png'); 
+    const wallTexture = textureLoader.load(constants.wallPaperPath);
     const wallMaterial = new THREE.MeshStandardMaterial({ map: wallTexture });
 
     const floorGeometry = new THREE.PlaneGeometry(roomDimensions.width, roomDimensions.depth)
