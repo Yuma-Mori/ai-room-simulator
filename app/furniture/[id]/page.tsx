@@ -45,7 +45,7 @@ export default function FurnitureDetail() {
 
   if (error || !furniture) {
     // NotFoundの代わりにトップへリダイレクト
-    if (typeof window !== "undefined") router.replace("/");
+    // if (typeof window !== "undefined") router.replace("/");
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-gray-600">商品が見つかりませんでした</p>
@@ -88,7 +88,7 @@ export default function FurnitureDetail() {
                 <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
                   {furniture.category}
                 </span>
-                {!furniture.inStock && (
+                {!furniture.stock && (
                   <span className="text-sm text-white bg-gray-900 px-3 py-1 rounded-full">
                     売り切れ
                   </span>
@@ -137,14 +137,14 @@ export default function FurnitureDetail() {
             {/* Action Buttons */}
             <div className="space-y-4">
               <button
-                disabled={!furniture.inStock}
+                disabled={!furniture.stock}
                 className={`w-full py-4 px-6 rounded-lg font-medium transition-colors ${
-                  furniture.inStock
+                  furniture.stock
                     ? "bg-gray-900 text-white hover:bg-gray-800"
                     : "bg-gray-200 text-gray-500 cursor-not-allowed"
                 }`}
               >
-                {furniture.inStock ? "カートに追加" : "売り切れ"}
+                {furniture.stock ? "カートに追加" : "売り切れ"}
               </button>
               <Link
                 href="/"
