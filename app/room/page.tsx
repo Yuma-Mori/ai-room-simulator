@@ -36,8 +36,6 @@ type furnitureInfo = {
 type StorageData = Omit<furnitureInfo, 'mesh'>
 const fps = 30
 
-
-
 const SimulateRoomArrangement: React.FC = () => {
   // parameter
   const params = useSearchParams();
