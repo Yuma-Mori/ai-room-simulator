@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 // import { fetchFurnitureById } from "@/lib/api";
 import { Furniture } from "@/types/furniture";
+import * as constants from "@/constants/roomSimulatorConstants";
 
 import Header from "@/components/organisms/Header";
 import Footer from "@/components/molecules/Footer";
@@ -21,10 +22,11 @@ export default function FurnitureDetail() {
     if (!params?.id) return;
     const fetchData = async () => {
       try {
-        const res = await fetch(`/api/furniture/${params.id}`);
+        const res = await fetch(`https://search-product-by-id-404451730547.asia-northeast1.run.app/${params.id}`);
         if (!res.ok) throw new Error('Fetch failed');
         const json = await res.json();
-        setFurniture(json.data)
+        console.log('Fetched furniture data:', json);
+        setFurniture(json)
       } catch (error) {
         console.error('Error fetching data:', error);
         setError(true)
@@ -75,10 +77,23 @@ export default function FurnitureDetail() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Product Image */}
-          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-            <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-              <span className="text-gray-500 text-lg">画像準備中</span>
-            </div>
+          <div className="aspect-square bg-gray-100 relative overflow-hidden">
+            {furniture.id ? (
+              <img
+                src={`${constants.cdnBaseUrl}/products/${furniture.id}/product.png`}
+                alt={furniture.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+                <span className="text-gray-500 text-sm">画像準備中</span>
+              </div>
+            )}
+            {!furniture.stock && (
+              <div className="absolute top-4 right-4 bg-gray-900 text-white px-3 py-1 text-xs rounded-full">
+                売り切れ
+              </div>
+            )}
           </div>
 
           {/* Product Info */}
@@ -111,25 +126,33 @@ export default function FurnitureDetail() {
 
             {/* Dimensions */}
             <div>
-              <h2 className="text-lg font-medium text-gray-900 mb-4">サイズ</h2>
+              <div className="flex justify-between gap-3 mb-4">
+                <h2 className="text-lg font-medium text-gray-900 mb-4">サイズ</h2>
+                 <Link
+                  href={`/room?itemId=${furniture.id}`}
+                  className="block bg-orange-100 w-4/5 py-4 px-6 border border-gray-300 rounded-lg font-medium text-gray-900 text-center hover:bg-gray-50 transition-colors"
+                >
+                  3Dシミュレータで試す
+                </Link>
+              </div>
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-gray-50 p-4 rounded-lg text-center">
                   <div className="text-2xl font-light text-gray-900 mb-1">
-                    {furniture.width}
+                    {furniture.width * 100}
                   </div>
                   <div className="text-sm text-gray-600">幅 (cm)</div>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg text-center">
                   <div className="text-2xl font-light text-gray-900 mb-1">
-                    {furniture.height}
+                    {furniture.depth * 100}
                   </div>
-                  <div className="text-sm text-gray-600">高さ (cm)</div>
+                  <div className="text-sm text-gray-600">奥行き (cm)</div>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg text-center">
                   <div className="text-2xl font-light text-gray-900 mb-1">
-                    {furniture.depth}
+                    {furniture.height * 100}
                   </div>
-                  <div className="text-sm text-gray-600">奥行き (cm)</div>
+                  <div className="text-sm text-gray-600">高さ (cm)</div>
                 </div>
               </div>
             </div>

@@ -12,10 +12,12 @@ import { Trash2, ChevronDown, ChevronUp } from "lucide-react"
 import { Slider } from "@/components/ui/slider"
 import { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { Eye, EyeOff, RotateCcw, RotateCw, HelpCircle, Camera } from "lucide-react"
+import { useSearchParams } from 'next/navigation';
 
 import FurnitureModal from "@/components/organisms/FurnitureModal";
 import HelpModal from "@/components/molecules/HelpModal";
 import PhotographModal from "@/components/organisms/PhotographModal";
+import AIChatPanel from "@/components/organisms/AIChatModal";
 import * as constants from "@/constants/roomSimulatorConstants";
 
 export const dynamic = 'force-dynamic';
@@ -28,15 +30,18 @@ type furnitureInfo = {
   rotation: { x: number; y: number; z: number }
   dimensions: { width: number; height: number; depth: number }
   mesh: THREE.Mesh
+  productId?: number // 商品IDを追加
 }
 
 type StorageData = Omit<furnitureInfo, 'mesh'>
 const fps = 30
 
+
+
 const SimulateRoomArrangement: React.FC = () => {
   // parameter
-  const params = useParams();
-  const propertyId = params.property_id;
+  const params = useSearchParams();
+  const itemId = params.get('itemId');
 
   // Ref
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -52,13 +57,14 @@ const SimulateRoomArrangement: React.FC = () => {
 
   // ローカルストレージの書き込み
   const saveFurnitureToLocalStorage = (furnitureData: furnitureInfo[]) => {
-    const savingData:StorageData[] = furnitureData.map((furnitureData) => ({
-      id: furnitureData.id,
-      label: furnitureData.label,
-      color: furnitureData.color,
-      position: furnitureData.position,
-      rotation: furnitureData.rotation,
-      dimensions: furnitureData.dimensions,
+    const savingData:StorageData[] = furnitureData.map((furniture) => ({
+      id: furniture.id,
+      label: furniture.label,
+      color: furniture.color,
+      position: furniture.position,
+      rotation: furniture.rotation,
+      dimensions: furniture.dimensions,
+      ...(furniture.productId && { productId: furniture.productId }), // ある場合のみ商品IDを追加
     }));
     localStorage.setItem("furnitureData", JSON.stringify(savingData));
   };
@@ -83,38 +89,81 @@ const SimulateRoomArrangement: React.FC = () => {
     const loadedFurniture: furnitureInfo[] = await Promise.all(
       savedFurniture.map((item) => {
         return new Promise<furnitureInfo>((resolve, reject) => {
-          // 対応する家具データを検索
-          const furniture = constants.furnitureCatalog.find((f) => f.name === item.label);
-          if (!furniture) {
-            console.error(`"${item.label}" に対応するモデルが見つかりません。`);
-            return reject(`"${item.label}" に対応するモデルが見つかりません。`);
-          }
-  
-          // GLTFLoaderを使用してモデルを読み込む
-          loader.load(
-            `/models/${furniture.model}`,
-            (gltf: GLTF) => {
-              const model = gltf.scene.children[0] as THREE.Mesh;
-              model.position.set(item.position.x, item.position.y, item.position.z);
-              model.rotation.set(item.rotation.x, item.rotation.y, item.rotation.z);
-              model.scale.set(item.dimensions.width, item.dimensions.height, item.dimensions.depth);
-  
-              // 家具情報を作成
-              const furnitureInfo: furnitureInfo = {
-                ...item,
-                mesh: model,
-              };
-  
-              // シーンに追加
-              sceneRef.current?.add(model);  
-              resolve(furnitureInfo);
-            },
-            undefined,
-            (error) => {
+          if(item.productId) {
+            // productIdがある場合はAPIからデータを取得
+            try {
+              fetch(`https://search-product-by-id-404451730547.asia-northeast1.run.app/${item.productId}`)
+              .then(res=>{
+                if (!res.ok) throw new Error('Fetch failed');
+                return res.json();
+              })
+              .then(data => {
+                loader.load(`${constants.cdnBaseUrl}/products/${item.productId}/model.glb`,
+                  (gltf: GLTF) => {
+                    const model = gltf.scene.children[0] as THREE.Mesh;
+                    model.position.set(item.position.x, item.position.y, item.position.z);
+                    model.rotation.set(item.rotation.x, item.rotation.y, item.rotation.z);
+                    model.scale.set(item.dimensions.width, item.dimensions.height, item.dimensions.depth);             
+
+                    // 家具情報を作成
+                    const furnitureInfo: furnitureInfo = {
+                      ...item,
+                      mesh: model,
+                    };
+
+                    // シーンに追加
+                    console.log(`"${data.name}" のモデルを読み込みました。`, furnitureInfo);
+                    sceneRef.current?.add(model);
+                    setFurnitureList((prevFurnitureList) => [...prevFurnitureList, furnitureInfo]);
+                    resolve(furnitureInfo);
+                  },
+                  undefined,
+                  (error) => {
+                    reject(error);
+                  }
+                );
+              })
+              .catch(error => {
+                reject(error);
+              });
+            } catch (error) {
               console.error(`"${item.label}" のモデル読み込み中にエラーが発生しました:`, error);
-              reject(error);
+              return reject(error);
+            }          
+          } else {
+            // 対応する家具データを検索
+            const furniture = constants.furnitureCatalog.find((f) => f.name === item.label);
+            if (!furniture) {
+              console.error(`"${item.label}" に対応するモデルが見つかりません。`);
+              return reject(`"${item.label}" に対応するモデルが見つかりません。`);
             }
-          );
+    
+            // GLTFLoaderを使用してモデルを読み込む
+            loader.load(
+              `/models/${furniture.model}`,
+              (gltf: GLTF) => {
+                const model = gltf.scene.children[0] as THREE.Mesh;
+                model.position.set(item.position.x, item.position.y, item.position.z);
+                model.rotation.set(item.rotation.x, item.rotation.y, item.rotation.z);
+                model.scale.set(item.dimensions.width, item.dimensions.height, item.dimensions.depth);
+    
+                // 家具情報を作成
+                const furnitureInfo: furnitureInfo = {
+                  ...item,
+                  mesh: model,
+                };
+    
+                // シーンに追加
+                sceneRef.current?.add(model);  
+                resolve(furnitureInfo);
+              },
+              undefined,
+              (error) => {
+                console.error(`"${item.label}" のモデル読み込み中にエラーが発生しました:`, error);
+                reject(error);
+              }
+            );
+          }
         });
       })
     );
@@ -240,8 +289,52 @@ const SimulateRoomArrangement: React.FC = () => {
     // ローカルストレージのデータを読み込み
     const loadData = async () => {
       await loadFurnitureFromLocalStorage();
-    };  
+    };
     loadData();
+
+    // パラメータにidがある場合は、その3Dモデルを追加する
+    const loadFurnitureById = async (itemId: string) => {
+      try {
+        const res = await fetch(`https://search-product-by-id-404451730547.asia-northeast1.run.app/${itemId}`);
+        if (!res.ok) throw new Error('Fetch failed');
+        const data = await res.json();
+        const loader = new GLTFLoader();
+        loader.load(`${constants.cdnBaseUrl}/products/${itemId}/model.glb`,
+          (gltf: GLTF) => {
+            const model = gltf.scene.children[0] as THREE.Mesh;
+            model.scale.set(data.width, data.height, data.depth);
+            model.position.set(data.width, data.height, data.depth);
+            const colorHex = Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0")              
+
+            // 家具情報を作成
+            const furnitureInfo: furnitureInfo = {
+              id: `furniture-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              label: "[商品] " + data.name,
+              color: `#${colorHex}`,
+              position: { x:data.width, y:data.height, z:data.depth },
+              dimensions: { width:data.width, height:data.height, depth:data.depth },
+              rotation: { x: 0, y: 0, z: 0 }, 
+              mesh: model,
+              productId: data.id, // 商品IDを追加
+            };
+
+            // シーンに追加
+            console.log(`"${data.name}" のモデルを読み込みました。`, furnitureInfo);
+            sceneRef.current?.add(model);
+            setFurnitureList((prevFurnitureList) => [...prevFurnitureList, furnitureInfo]);
+        },
+          undefined,
+          (error) => {
+            console.error(`"${data.name}" のモデル読み込み中にエラーが発生しました:`, error);
+          }
+        );
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };    
+    if (itemId) {
+      loadFurnitureById(itemId);
+    }
 
     // トランスフォームコントロール
     const transformControls = new TransformControls(cameraRef.current, canvasRef.current);    
@@ -369,6 +462,26 @@ const SimulateRoomArrangement: React.FC = () => {
     }
     render()
 
+    // Threejsのクリア
+    const clearThree = (obj:any) => {
+        while(obj.children.length > 0){ 
+        clearThree(obj.children[0]);
+        obj.remove(obj.children[0]);
+      }
+      if(obj.geometry) obj.geometry.dispose();
+
+      if(obj.material){ 
+        //in case of map, bumpMap, normalMap, envMap ...
+        Object.keys(obj.material).forEach(prop => {
+          if(!obj.material[prop])
+            return;
+          if(obj.material[prop] !== null && typeof obj.material[prop].dispose === 'function')                                  
+            obj.material[prop].dispose();                                                      
+        })
+        obj.material.dispose();
+      }
+    }
+
     // クリーンアップ関数
     return () => {
       // メモリリークを防ぐためにジオメトリとマテリアルを破棄。
@@ -420,7 +533,7 @@ const SimulateRoomArrangement: React.FC = () => {
 
       // シーンのdispose
       if (sceneRef.current) {
-        sceneRef.current.clear()
+        clearThree(sceneRef.current);
       }
     }
   }, [])
@@ -759,6 +872,7 @@ const SimulateRoomArrangement: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // スマホ縦画面で横画面を推奨する案内
   useEffect(() => {
@@ -797,8 +911,18 @@ const SimulateRoomArrangement: React.FC = () => {
 
   return (
     <div className="flex h-screen w-full">
+      {isChatOpen ? (
+        <div className="w-2/5 lg:w-1/4 bg-gray-100 text-black block h-screen">
+          <AIChatPanel
+            onClose={() => setIsChatOpen(false)}
+            getCanvasImage={() => canvasRef.current?.toDataURL("image/jpeg", 0.6) ?? ""}
+            getRoomDimensions={() => roomDimensionsRef.current}
+            getFurniture={() => furnitureListRef.current.map(({ mesh, color, rotation, ...rest }) => rest)}
+          />
+        </div>
+      ) : (
       <div className="w-2/5 lg:w-1/4 p-4 bg-gray-100 text-black block h-screen overflow-y-scroll">            
-        <h2 className="text-2xl font-bold mb-4">Room Simulator propertyId:{propertyId}</h2>
+        <h2 className="text-2xl font-bold mb-4">3Dお部屋シミュレータ</h2>
         <RoomDimensionSection roomDimensions={roomDimensions} setRoomDimensions={setRoomDimensions}/>
         <AddFurnitureSection setIsModalOpen={setIsModalOpen}/> 
         <HandleFurnitureSection 
@@ -816,6 +940,8 @@ const SimulateRoomArrangement: React.FC = () => {
           <p>テクスチャ提供: <a href="http://www.freepik.com" className="text-blue-500 underline">Designed by Kjpargeter / Freepik</a></p>
         </footer>
       </div>
+    )}
+
       <div className="w-3/5 lg:w-3/4 h-screen ">
         <canvas className="w-full h-full" ref={canvasRef} />
       </div>
@@ -854,6 +980,16 @@ const SimulateRoomArrangement: React.FC = () => {
         type="button"        
       >
         <Camera className="w-7 h-7" />
+      </button>
+      <button
+        className="fixed bottom-56 right-6 z-50 bg-green-500 text-white rounded-full shadow-lg w-12 h-12 flex items-center justify-center hover:bg-green-600"
+        onClick={() => setIsChatOpen(true)}
+        aria-label="AIチャット"
+        type="button"
+      >
+        <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.77 9.77 0 01-4-.8L3 20l.8-4A8.96 8.96 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
       </button>
       <PhotographModal
         open={isPhotoModalOpen}
@@ -990,12 +1126,10 @@ function HandleFurnitureSection({furnitureList, expandedFurnitureId, attachTrans
             <Card key={`${furniture.id}-${index}`} ref={(el) => {cardRefs.current[furniture.id] = el}} className={`p-3`} onClick={() => attachTransformControlsById(furniture.id)}>
               <div>{furniture.label}</div>
               <div className="flex items-center gap-3">
-                <div className="w-6 h-6 rounded-full" style={{ backgroundColor: furniture.color }} />
-                <div className="flex-1 text-xs">
-                  <div>X: {furniture.position.x.toFixed(2)}</div>
-                  <div>Y: {furniture.position.y.toFixed(2)}</div>
-                  <div>Z: {furniture.position.z.toFixed(2)}</div>
-                </div>                
+                <div className="flex-1 text-s">
+                  <div>{Math.floor(furniture.dimensions.width*100)} cm × {Math.floor(furniture.dimensions.depth*100)} cm × {Math.floor(furniture.dimensions.height*100)} cm</div>
+                </div> 
+                {!furniture.productId && (             
                 <Button
                   variant="ghost"
                   size="icon"
@@ -1007,7 +1141,7 @@ function HandleFurnitureSection({furnitureList, expandedFurnitureId, attachTrans
                   ) : (
                     <ChevronDown className="h-4 w-4" />
                   )}
-                </Button> 
+                </Button>)}
                 <Button
                   variant="ghost"
                   size="icon"
@@ -1028,7 +1162,7 @@ function HandleFurnitureSection({furnitureList, expandedFurnitureId, attachTrans
                 </Button>                
               </div>
 
-              {expandedFurnitureId === furniture.id && (
+              {expandedFurnitureId === furniture.id &&!furniture.productId && (
                 <div className="mt-3 pt-3 border-t">
                   <div className="space-y-4">
                     <div className="space-y-2">
