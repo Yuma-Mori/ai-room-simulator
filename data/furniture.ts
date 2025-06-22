@@ -7,7 +7,7 @@ export const furnitureData: Furniture[] = [
     description: 'シンプルでスタイリッシュなモダンチェア。',
     price: 15000, // 円
     category: '椅子',
-    inStock: true,
+    stock: 5,
     image: '/images/chair1.jpg',
     width: 45,
     height: 85,
