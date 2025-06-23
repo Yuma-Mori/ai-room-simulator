@@ -17,6 +17,7 @@ import FurnitureModal from "@/components/organisms/FurnitureModal";
 import HelpModal from "@/components/molecules/HelpModal";
 import PhotographModal from "@/components/organisms/PhotographModal";
 import AIChatPanel from "@/components/organisms/AIChatModal";
+import AISearchModal from "@/components/organisms/AISearchModal";
 import * as constants from "@/constants/roomSimulatorConstants";
 
 export const dynamic = 'force-dynamic';
@@ -865,11 +866,55 @@ const SimulateRoomArrangement: React.FC = () => {
     }
   }
 
+  // AI検索された商品を部屋に追加
+  const addProductToRoom = (product: {
+    id: number;
+    name: string;
+    imageUrl: string;
+    width: number;
+    height: number;
+    depth: number;
+    modelUrl: string;
+  }) => {
+    if (!sceneRef.current || !transformControlsRef.current) return;
+
+    const loader = new GLTFLoader();
+    loader.load(`${constants.cdnBaseUrl}/products/${product.id}/model.glb`, (gltf: GLTF) => {
+      const model = gltf.scene.children[0] as THREE.Mesh;
+      const x = product.width;
+      const y = product.height / 2;
+      const z = product.depth;
+      model.position.set(x, y, z);
+      model.scale.set(product.width, product.height, product.depth);
+      sceneRef.current?.add(model);
+      transformControlsRef.current?.attach(model);
+
+      const colorHex = Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0");
+      const newFurniture: furnitureInfo = {
+        id: `furniture-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        label: "[商品] " + product.name,
+        color: `#${colorHex}`,
+        position: { x, y, z },
+        dimensions: { width: product.width, height: product.height, depth: product.depth },
+        rotation: { x: 0, y: 0, z: 0 },
+        mesh: model,
+        productId: product.id,
+      };
+      setFurnitureList((prev) => [newFurniture, ...prev]);
+      setFurnitureVisibility((prev) => ({
+        ...prev,
+        [newFurniture.id]: true,
+      }));
+      setExpandedFurnitureId(newFurniture.id);
+    });
+  };
+
   // モーダル操作
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isAISearchOpen, setIsAISearchOpen] = useState(false);
 
   // スマホ縦画面で横画面を推奨する案内
   useEffect(() => {
@@ -918,7 +963,7 @@ const SimulateRoomArrangement: React.FC = () => {
           />
         </div>
       ) : (
-      <div className="w-2/5 lg:w-1/4 p-4 bg-gray-100 text-black block h-screen overflow-y-scroll">            
+      <div className="w-2/5 lg:w-1/4 p-4 bg-gray-100 text-black block h-screen">            
         <h2 className="text-2xl font-bold mb-4">3Dお部屋シミュレータ</h2>
         <RoomDimensionSection roomDimensions={roomDimensions} setRoomDimensions={setRoomDimensions}/>
         <AddFurnitureSection setIsModalOpen={setIsModalOpen}/> 
@@ -933,12 +978,10 @@ const SimulateRoomArrangement: React.FC = () => {
           furnitureVisibility={furnitureVisibility}
           toggleFurnitureVisibility={toggleFurnitureVisibility}
         />
-        <footer className="bg-gray-200 text-gray-700 text-sm p-4">
-          <p>テクスチャ提供: <a href="http://www.freepik.com" className="text-blue-500 underline">Designed by Kjpargeter / Freepik</a></p>
-        </footer>
       </div>
     )}
-
+      
+      {/* キャンバス */}
       <div className="w-3/5 lg:w-3/4 h-screen ">
         <canvas className="w-full h-full" ref={canvasRef} />
       </div>
@@ -949,6 +992,7 @@ const SimulateRoomArrangement: React.FC = () => {
         onSelect={addFurniture}
       />
 
+      {/* 俯瞰⇔部屋の中心視点切り替え */}
       <button
         className="fixed bottom-24 right-6 z-50 bg-white text-blue-500 rounded-full shadow-lg w-12 h-12 flex items-center justify-center hover:bg-blue-100 border border-blue-300"
         onClick={switchCameraView}
@@ -959,8 +1003,8 @@ const SimulateRoomArrangement: React.FC = () => {
         <Eye className="w-7 h-7" />
       </button>
       
-      <HelpModal open={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
-
+      {/* ヘルプ */}
+      <HelpModal open={isHelpOpen} onClose={() => setIsHelpOpen(false)} />      
       <button
         className="fixed bottom-6 right-6 z-50 bg-blue-500 text-white rounded-full shadow-lg w-12 h-12 flex items-center justify-center hover:bg-blue-600"
         onClick={() => setIsHelpOpen(true)}
@@ -970,6 +1014,12 @@ const SimulateRoomArrangement: React.FC = () => {
         <HelpCircle className="w-7 h-7" />
       </button>
 
+      {/* カメラ撮影モーダル */}
+      <PhotographModal
+        open={isPhotoModalOpen}
+        BuildRoom={buildRoomFromApi} // 部屋構築用の関数
+        onClose={() => setIsPhotoModalOpen(false)}
+      />
       <button
         className="fixed bottom-40 right-6 z-50 bg-white text-blue-500 rounded-full shadow-lg w-12 h-12 flex items-center justify-center hover:bg-blue-100 border border-blue-300"
         onClick={() => setIsPhotoModalOpen(true)}
@@ -978,6 +1028,9 @@ const SimulateRoomArrangement: React.FC = () => {
       >
         <Camera className="w-7 h-7" />
       </button>
+
+
+      {/* AIチャットの切り替え */}
       <button
         className="fixed bottom-56 right-6 z-50 bg-green-500 text-white rounded-full shadow-lg w-12 h-12 flex items-center justify-center hover:bg-green-600"
         onClick={() => setIsChatOpen(true)}
@@ -988,11 +1041,29 @@ const SimulateRoomArrangement: React.FC = () => {
           <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.77 9.77 0 01-4-.8L3 20l.8-4A8.96 8.96 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
         </svg>
       </button>
-      <PhotographModal
-        open={isPhotoModalOpen}
-        BuildRoom={buildRoomFromApi} // 部屋構築用の関数
-        onClose={() => setIsPhotoModalOpen(false)}
+
+      {/* AI商品検索モーダル */}
+      <AISearchModal
+        open={isAISearchOpen}
+        onClose={() => setIsAISearchOpen(false)}
+        getCanvasImage={() => canvasRef.current?.toDataURL("image/jpeg", 0.6) ?? ""}
+        getRoomDimensions={() => roomDimensionsRef.current}
+        getFurniture={() => furnitureListRef.current.map(({ mesh, color, rotation, ...rest }) => rest)}
+        onProductSelect={addProductToRoom}
       />
+      <button
+          className="absolute bottom-6 right-24 z-50 bg-pink-500 text-white rounded-full shadow-lg w-12 h-12 flex items-center justify-center hover:bg-pink-600"
+          onClick={() => setIsAISearchOpen(true)}
+          aria-label="AI商品検索"
+          type="button"
+        >
+          <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="2" />
+            <path stroke="white" strokeWidth="2" strokeLinecap="round" d="M8 12h8" />
+            <path stroke="white" strokeWidth="2" strokeLinecap="round" d="M12 8v8" />
+          </svg>
+        </button>
+      
     </div>
   )
 }
@@ -1111,7 +1182,7 @@ function HandleFurnitureSection({furnitureList, expandedFurnitureId, attachTrans
   }, [expandedFurnitureId]);
 
   return (
-    <div className="w-full h-3/5 bg-gray-50 p-4 overflow-y-scroll border-l">
+    <div className="w-full h-2/3 bg-gray-50 p-4 overflow-y-scroll border-l">
       <h3 className="font-medium mb-1 lg:mb-4 text-base lg:text-lg">家具一覧</h3>
       {furnitureList.length === 0 ? (
         <p className="text-sm text-gray-500">

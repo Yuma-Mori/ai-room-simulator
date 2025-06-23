@@ -55,7 +55,7 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({ onClose, getCanvasImage, getR
   return (
     <div className="w-full h-full flex flex-col bg-white">
       <div className="flex justify-between items-center p-4 border-b">
-        <h3 className="text-lg font-bold">AIと相談</h3>
+        <h3 className="text-lg font-bold">AIコンシェルジュに相談</h3>
         <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-300 hover:bg-red-600">×</button>
       </div>
       <div className="flex-1 overflow-y-auto p-4 space-y-4">

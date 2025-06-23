@@ -4,6 +4,7 @@ export const furnitureDimensionsMinimum = 0.05
 
 export const CameraAnalysisApiUrl = "https://detect-room-info-404451730547.asia-northeast1.run.app"
 export const AIChatUrl = "https://advise-best-buy-404451730547.asia-northeast1.run.app"
+export const AISearchUrl = "https://search-best-furniture-404451730547.asia-northeast1.run.app"
 
 export const cdnBaseUrl = "http://34.49.84.80"
 export const wallPaperPath = cdnBaseUrl + "/simulator/textures/wallpaper.png"
@@ -51,6 +52,12 @@ export const furnitureCatalog  = [
     "name_en": "tv",
     "model": "tv.glb",
     "defaultScale": [0.7, 0.9, 0.3]
+  },
+  {
+    "name": "ソファ", 
+    "name_en": "sofa",
+    "model": "sofa.glb",
+    "defaultScale": [1.2, 0.6, 0.85]
   },
   {
     "name": "ドア", 
