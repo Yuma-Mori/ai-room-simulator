@@ -12,11 +12,13 @@ import { Slider } from "@/components/ui/slider"
 import { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { Eye, EyeOff, RotateCcw, RotateCw, HelpCircle, Camera } from "lucide-react"
 import { useSearchParams } from 'next/navigation';
+import Link from "next/link";
 
+import Header from "@/components/organisms/Header";
 import FurnitureModal from "@/components/organisms/FurnitureModal";
 import HelpModal from "@/components/molecules/HelpModal";
 import PhotographModal from "@/components/organisms/PhotographModal";
-import AIChatPanel from "@/components/organisms/AIChatModal";
+import AIChatPanel from "@/components/organisms/AIChatPanel";
 import AISearchModal from "@/components/organisms/AISearchModal";
 import * as constants from "@/constants/roomSimulatorConstants";
 
@@ -31,9 +33,10 @@ type furnitureInfo = {
   dimensions: { width: number; height: number; depth: number }
   mesh: THREE.Mesh
   productId?: number // 商品IDを追加
+  isLoadFailed?: boolean // ←追加
 }
 
-type StorageData = Omit<furnitureInfo, 'mesh'>
+type StorageData = Omit<furnitureInfo, 'mesh' | 'isLoadFailed'>
 const fps = 30
 
 const SimulateRoomArrangement: React.FC = () => {
@@ -83,7 +86,19 @@ const SimulateRoomArrangement: React.FC = () => {
   
     const savedFurniture = JSON.parse(data) as StorageData[];
     const loader = new GLTFLoader();
-  
+
+    // 読み込み失敗時に透明な箱で代用するための関数
+    const createSubstituteBox = (item: StorageData): THREE.Mesh => {
+      const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
+      const boxMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff99, transparent: true, opacity: 0.5 });
+      const boxMesh = new THREE.Mesh(boxGeometry, boxMaterial);
+      boxMesh.position.set(item.position.x, item.position.y, item.position.z);
+      boxMesh.rotation.set(item.rotation.x, item.rotation.y, item.rotation.z);
+      boxMesh.scale.set(item.dimensions.width, item.dimensions.height, item.dimensions.depth);
+      sceneRef.current?.add(boxMesh);
+      return boxMesh;
+    };
+
     const loadedFurniture: furnitureInfo[] = await Promise.all(
       savedFurniture.map((item) => {
         return new Promise<furnitureInfo>((resolve, reject) => {
@@ -117,17 +132,33 @@ const SimulateRoomArrangement: React.FC = () => {
                   },
                   undefined,
                   (error) => {
-                    reject(error);
+                    // モデルロード失敗時は透明な箱で代用する。
+                    console.error(`"${item.label}" のモデル読み込み中にエラーが発生しました:`, error);
+                    const substituteBox = createSubstituteBox(item);
+                    const furnitureInfo: furnitureInfo = {
+                      ...item,
+                      mesh: substituteBox,
+                      isLoadFailed: true,
+                    };
+                    resolve(furnitureInfo);
                   }
                 );
               })
               .catch(error => {
-                reject(error);
+                // API取得失敗は透明な箱で代用する。
+                console.error(`"${item.label}" の情報取得中にエラーが発生しました:`, error);
+                const substituteBox = createSubstituteBox(item);
+                const furnitureInfo: furnitureInfo = {
+                  ...item,
+                  mesh: substituteBox,
+                  isLoadFailed: true,
+                };
+                resolve(furnitureInfo);
               });
             } catch (error) {
               console.error(`"${item.label}" のモデル読み込み中にエラーが発生しました:`, error);
               return reject(error);
-            }          
+            }
           } else {
             // 対応する家具データを検索
             const furniture = constants.furnitureCatalog.find((f) => f.name === item.label);
@@ -158,7 +189,13 @@ const SimulateRoomArrangement: React.FC = () => {
               undefined,
               (error) => {
                 console.error(`"${item.label}" のモデル読み込み中にエラーが発生しました:`, error);
-                reject(error);
+                const substituteBox = createSubstituteBox(item);
+                const furnitureInfo: furnitureInfo = {
+                  ...item,
+                  mesh: substituteBox,
+                  isLoadFailed: true
+                };
+                resolve(furnitureInfo);
               }
             );
           }
@@ -301,13 +338,13 @@ const SimulateRoomArrangement: React.FC = () => {
           (gltf: GLTF) => {
             const model = gltf.scene.children[0] as THREE.Mesh;
             model.scale.set(data.width, data.height, data.depth);
-            model.position.set(data.width, data.height, data.depth);
+            model.position.set(data.width, data.height/2, data.depth);
             const colorHex = Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0")              
 
             // 家具情報を作成
             const furnitureInfo: furnitureInfo = {
               id: `furniture-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-              label: "[商品] " + data.name,
+              label: data.name,
               color: `#${colorHex}`,
               position: { x:data.width, y:data.height, z:data.depth },
               dimensions: { width:data.width, height:data.height, depth:data.depth },
@@ -407,20 +444,27 @@ const SimulateRoomArrangement: React.FC = () => {
       const targetObject = furnitureListRef.current.find((furniture) => furniture.mesh === attachedObject);
       if (!targetObject) return;
       // 座標が変更されてない場合、または、壁からはみ出ていない場合は何もしない
-      if (targetObject.position.x > targetObject.dimensions.width/2 &&
+      // rotationも考慮して、x, y, zの値を計算
+      const rotation = attachedObject.rotation;
+      const position = attachedObject.position;
+      const dimensions = targetObject.dimensions;
+
+      const actualWidthHalf = dimensions.width/2 *Math.abs(Math.cos(rotation.y)) + dimensions.depth/2 * Math.abs(Math.sin(rotation.y));
+      const actualDepthHalf = dimensions.depth/2 *Math.abs(Math.cos(rotation.y)) + dimensions.width/2 * Math.abs(Math.sin(rotation.y));
+      if (targetObject.position.x > actualWidthHalf &&
           targetObject.position.y > targetObject.dimensions.height/2 &&
-          targetObject.position.z > targetObject.dimensions.depth/2 &&
-          targetObject.position.x - targetObject.dimensions.width/2 > roomDimensionsRef.current.width &&
-          targetObject.position.z - targetObject.dimensions.depth/2 > roomDimensionsRef.current.depth &&
+          targetObject.position.z > actualDepthHalf &&
+          targetObject.position.x - actualWidthHalf > roomDimensionsRef.current.width &&
+          targetObject.position.z - actualDepthHalf > roomDimensionsRef.current.depth &&
           targetObject.position.x === attachedObject.position.x &&
           targetObject.position.y === attachedObject.position.y &&
           targetObject.position.z === attachedObject.position.z) return;      
   
       // 壁からはみ出ないように座標を更新
       const newPosition = {
-        x: Math.min(Math.max(targetObject.dimensions.width/2, attachedObject.position.x), roomDimensionsRef.current.width - targetObject.dimensions.width/2),
+        x: Math.min(Math.max(actualWidthHalf, attachedObject.position.x), roomDimensionsRef.current.width - actualWidthHalf),
         y: Math.max(targetObject.dimensions.height/2, attachedObject.position.y),
-        z: Math.min(Math.max(targetObject.dimensions.depth/2, attachedObject.position.z), roomDimensionsRef.current.depth - targetObject.dimensions.depth/2),
+        z: Math.min(Math.max(actualDepthHalf, attachedObject.position.z), roomDimensionsRef.current.depth - actualDepthHalf),
       };
       attachedObject.position.set(newPosition.x, newPosition.y, newPosition.z);
   
@@ -820,8 +864,6 @@ const SimulateRoomArrangement: React.FC = () => {
         setRoomDimensions(apiData.roomDimensions);
       }
     if (apiData.furnitureData) {
-      // 必要に応じて既存家具をクリア
-      setFurnitureList([]);
       // 家具を追加
       for (const f of apiData.furnitureData) {
         console.log("Adding furniture from API:", f.name);
@@ -892,7 +934,7 @@ const SimulateRoomArrangement: React.FC = () => {
       const colorHex = Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0");
       const newFurniture: furnitureInfo = {
         id: `furniture-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        label: "[商品] " + product.name,
+        label: product.name,
         color: `#${colorHex}`,
         position: { x, y, z },
         dimensions: { width: product.width, height: product.height, depth: product.depth },
@@ -953,6 +995,7 @@ const SimulateRoomArrangement: React.FC = () => {
 
   return (
     <div className="flex h-screen w-full">
+      {/* チャット画面 */}
       {isChatOpen ? (
         <div className="w-2/5 lg:w-1/4 bg-gray-100 text-black block h-screen">
           <AIChatPanel
@@ -963,9 +1006,25 @@ const SimulateRoomArrangement: React.FC = () => {
           />
         </div>
       ) : (
-      <div className="w-2/5 lg:w-1/4 p-4 bg-gray-100 text-black block h-screen">            
-        <h2 className="text-2xl font-bold mb-4">3Dお部屋シミュレータ</h2>
+      <div className="w-2/5 lg:w-1/4 p-4 bg-gray-100 text-black block h-screen overflow-y-scroll lg:overflow-y-visible">            
+        <header className=" border-b border-gray-100 top-0 z-10">
+          <div className="max-w-7xl mx-auto h-16 flex items-center justify-between">
+              <Link href="/" className="text-2xl text-gray-900 tracking-wide hover:text-gray-600 transition-colors">
+                {constants.HomePageTitle}
+              </Link>
+          </div>
+        </header>
         <RoomDimensionSection roomDimensions={roomDimensions} setRoomDimensions={setRoomDimensions}/>
+        {/* AIカメラから追加するボタン */}
+        <Button
+          className="w-full bg-orange-200 text-black text-lg font-bold rounded-lg py-4 mb-4 hover:bg-orange-300 transition-colors"
+          onClick={() => setIsPhotoModalOpen(true)}
+          aria-label="AI商品検索"
+          type="button"
+        >
+          <Camera className="mr-2 h-10 w-10" />
+          AIカメラで自動セットアップ
+        </Button>
         <AddFurnitureSection setIsModalOpen={setIsModalOpen}/> 
         <HandleFurnitureSection 
           furnitureList={furnitureList} 
@@ -1020,15 +1079,6 @@ const SimulateRoomArrangement: React.FC = () => {
         BuildRoom={buildRoomFromApi} // 部屋構築用の関数
         onClose={() => setIsPhotoModalOpen(false)}
       />
-      <button
-        className="fixed bottom-40 right-6 z-50 bg-white text-blue-500 rounded-full shadow-lg w-12 h-12 flex items-center justify-center hover:bg-blue-100 border border-blue-300"
-        onClick={() => setIsPhotoModalOpen(true)}
-        aria-label="部屋を撮影して解析"
-        type="button"        
-      >
-        <Camera className="w-7 h-7" />
-      </button>
-
 
       {/* AIチャットの切り替え */}
       <button
@@ -1052,7 +1102,7 @@ const SimulateRoomArrangement: React.FC = () => {
         onProductSelect={addProductToRoom}
       />
       <button
-          className="absolute bottom-6 right-24 z-50 bg-pink-500 text-white rounded-full shadow-lg w-12 h-12 flex items-center justify-center hover:bg-pink-600"
+          className="fixed bottom-40 right-6 z-50 bg-pink-500 text-white rounded-full shadow-lg w-12 h-12 flex items-center justify-center hover:bg-pink-600"
           onClick={() => setIsAISearchOpen(true)}
           aria-label="AI商品検索"
           type="button"
@@ -1062,8 +1112,7 @@ const SimulateRoomArrangement: React.FC = () => {
             <path stroke="white" strokeWidth="2" strokeLinecap="round" d="M8 12h8" />
             <path stroke="white" strokeWidth="2" strokeLinecap="round" d="M12 8v8" />
           </svg>
-        </button>
-      
+      </button>      
     </div>
   )
 }
@@ -1133,25 +1182,25 @@ type AddFurnitureSectionProps = {
 function AddFurnitureSection({setIsModalOpen}: AddFurnitureSectionProps) {
   // 家具の追加セクション
   return(
-    <div className="mb-1 lg:mb-6">
-          <div className="flex items-center gap-2" onClick={() => setIsModalOpen(true)}>
-            <h3 className="text-base lg:text-lg font-semibold text-blue-500">家具の追加</h3>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-blue-500"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-            </Button>
-          </div>
+    <div className="mb-1 lg:mb-3">
+      <div className="flex items-center gap-1" onClick={() => setIsModalOpen(true)}>
+        <h3 className="text-base lg:text-md font-semibold ">家具の手動追加</h3>
+        <Button
+          variant="ghost"
+          size="icon"
+          // className="text-blue-500"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+        </Button>
+      </div>
     </div>
   )
 }
@@ -1182,22 +1231,36 @@ function HandleFurnitureSection({furnitureList, expandedFurnitureId, attachTrans
   }, [expandedFurnitureId]);
 
   return (
-    <div className="w-full h-2/3 bg-gray-50 p-4 overflow-y-scroll border-l">
+    <div className="w-full lg:h-[63%] bg-gray-50 p-4 border-l overflow-y-scroll">
       <h3 className="font-medium mb-1 lg:mb-4 text-base lg:text-lg">家具一覧</h3>
       {furnitureList.length === 0 ? (
         <p className="text-sm text-gray-500">
           家具を追加してください。
         </p>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 ">
           {furnitureList.map((furniture, index) => (
             <Card key={`${furniture.id}-${index}`} ref={(el) => {cardRefs.current[furniture.id] = el}} className={`p-3`} onClick={() => attachTransformControlsById(furniture.id)}>
-              <div>{furniture.label}</div>
+              <div className="flex justify-between items-center">
+                {furniture.label}{furniture.isLoadFailed && (<span className="ml-2 text-xs text-red-500">（読み込み失敗）</span>)}
+                {/* 購入ボタン */}
+                { furniture.productId && (
+                  <Button
+                    className="w-auto px-2 bg-orange-400 text-white hover:bg-orange-500"
+                    variant="ghost"
+                    size="icon"
+                    onClick={()=>{alert("本ハッカソンの実装はここまでです！お使いいただきありがとうございました！")}}
+                    title="これを買う"
+                  >
+                    この商品を購入
+                  </Button>
+                )}
+              </div>
+              
               <div className="flex items-center gap-3">
                 <div className="flex-1 text-s">
                   <div>{Math.floor(furniture.dimensions.width*100)} cm × {Math.floor(furniture.dimensions.depth*100)} cm × {Math.floor(furniture.dimensions.height*100)} cm</div>
                 </div> 
-                {!furniture.productId && (             
                 <Button
                   variant="ghost"
                   size="icon"
@@ -1209,7 +1272,7 @@ function HandleFurnitureSection({furnitureList, expandedFurnitureId, attachTrans
                   ) : (
                     <ChevronDown className="h-4 w-4" />
                   )}
-                </Button>)}
+                </Button>                
                 <Button
                   variant="ghost"
                   size="icon"
@@ -1230,95 +1293,101 @@ function HandleFurnitureSection({furnitureList, expandedFurnitureId, attachTrans
                 </Button>                
               </div>
 
-              {expandedFurnitureId === furniture.id &&!furniture.productId && (
+              {expandedFurnitureId === furniture.id && (
                 <div className="mt-3 pt-3 border-t">
                   <div className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <Label htmlFor={`width-${furniture.id}`} className="text-s">
-                          幅: {Math.round(furniture.dimensions.width* 100)} cm
-                        </Label>  
-                        <div className="flex gap-1">                              
-                          <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => updateFurnitureDimensions(
-                            furniture.id, 
-                            { width: Math.max(furniture.dimensions.width - constants.furnitureDimensionChangeValue, constants.furnitureDimensionsMinimum) }) // 最小値以下の時に最小値に丸める
-                            }>
-                            - {constants.furnitureDimensionChangeValue * 100} cm
-                          </Button>
-                          <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => updateFurnitureDimensions(
-                            furniture.id, 
-                            { width: Math.min(furniture.dimensions.width + constants.furnitureDimensionChangeValue, constants.furnitureDimensionsMaximum) }) // 最大値以下の時に最大値に丸める
-                            }>
-                            + {constants.furnitureDimensionChangeValue * 100} cm
-                          </Button>
-                        </div>                          
-                      </div>
-                      <Slider
-                        id={`width-${furniture.id}`}
-                        min={constants.furnitureDimensionsMinimum * 100}
-                        max={constants.furnitureDimensionsMaximum * 100}
-                        step={1}
-                        value={[furniture.dimensions.width * 100 ]} // m -> cm に変換して表示
-                        onValueChange={(value) => updateFurnitureDimensions(furniture.id, { width: value[0] /100 })} // cm -> m に変換して保存
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <Label htmlFor={`height-${furniture.id}`} className="text-s">
-                          高さ: {Math.round(furniture.dimensions.height* 100)} cm
-                        </Label>
-                        <div className="flex gap-1">                              
-                          <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => updateFurnitureDimensions(
-                            furniture.id, 
-                            { height: Math.max(furniture.dimensions.height - constants.furnitureDimensionChangeValue, constants.furnitureDimensionsMinimum) })
-                            }>
-                            - {constants.furnitureDimensionChangeValue * 100} cm
-                          </Button>
-                          <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => updateFurnitureDimensions(
-                            furniture.id, 
-                            { height: Math.min(furniture.dimensions.height + constants.furnitureDimensionChangeValue, constants.furnitureDimensionsMaximum) })
-                            }>
-                            + {constants.furnitureDimensionChangeValue * 100} cm
-                          </Button>
+                    
+                    {/* productIdが無い時のみ座標を変更できる */}
+                    {!furniture.productId && (
+                      <>
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <Label htmlFor={`width-${furniture.id}`} className="text-s">
+                              幅: {Math.round(furniture.dimensions.width* 100)} cm
+                            </Label>  
+                            <div className="flex gap-1">                              
+                              <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => updateFurnitureDimensions(
+                                furniture.id, 
+                                { width: Math.max(furniture.dimensions.width - constants.furnitureDimensionChangeValue, constants.furnitureDimensionsMinimum) }) // 最小値以下の時に最小値に丸める
+                                }>
+                                - {constants.furnitureDimensionChangeValue * 100} cm
+                              </Button>
+                              <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => updateFurnitureDimensions(
+                                furniture.id, 
+                                { width: Math.min(furniture.dimensions.width + constants.furnitureDimensionChangeValue, constants.furnitureDimensionsMaximum) }) // 最大値以下の時に最大値に丸める
+                                }>
+                                + {constants.furnitureDimensionChangeValue * 100} cm
+                              </Button>
+                            </div>                          
+                          </div>
+                          <Slider
+                            id={`width-${furniture.id}`}
+                            min={constants.furnitureDimensionsMinimum * 100}
+                            max={constants.furnitureDimensionsMaximum * 100}
+                            step={1}
+                            value={[furniture.dimensions.width * 100 ]} // m -> cm に変換して表示
+                            onValueChange={(value) => updateFurnitureDimensions(furniture.id, { width: value[0] /100 })} // cm -> m に変換して保存
+                          />
                         </div>
-                      </div>
-                      <Slider
-                        id={`height-${furniture.id}`}
-                        min={constants.furnitureDimensionsMinimum * 100}
-                        max={constants.furnitureDimensionsMaximum * 100}
-                        step={1}
-                        value={[furniture.dimensions.height * 100]}
-                        onValueChange={(value) => updateFurnitureDimensions(furniture.id, { height: value[0]/100 })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <Label htmlFor={`depth-${furniture.id}`} className="text-s">
-                          奥行き: {Math.round(furniture.dimensions.depth* 100)} cm
-                        </Label>
-                        <div className="flex gap-1">                              
-                          <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => updateFurnitureDimensions(
-                            furniture.id, 
-                            { depth: Math.max(furniture.dimensions.depth - constants.furnitureDimensionChangeValue, constants.furnitureDimensionsMinimum ) })}>
-                            - {constants.furnitureDimensionChangeValue * 100} cm
-                          </Button>
-                          <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => updateFurnitureDimensions(
-                            furniture.id, 
-                            { depth: Math.min(furniture.dimensions.depth + constants.furnitureDimensionChangeValue, constants.furnitureDimensionsMaximum ) })
-                            }>
-                            + {constants.furnitureDimensionChangeValue * 100} cm
-                          </Button>
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <Label htmlFor={`height-${furniture.id}`} className="text-s">
+                              高さ: {Math.round(furniture.dimensions.height* 100)} cm
+                            </Label>
+                            <div className="flex gap-1">                              
+                              <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => updateFurnitureDimensions(
+                                furniture.id, 
+                                { height: Math.max(furniture.dimensions.height - constants.furnitureDimensionChangeValue, constants.furnitureDimensionsMinimum) })
+                                }>
+                                - {constants.furnitureDimensionChangeValue * 100} cm
+                              </Button>
+                              <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => updateFurnitureDimensions(
+                                furniture.id, 
+                                { height: Math.min(furniture.dimensions.height + constants.furnitureDimensionChangeValue, constants.furnitureDimensionsMaximum) })
+                                }>
+                                + {constants.furnitureDimensionChangeValue * 100} cm
+                              </Button>
+                            </div>
+                          </div>
+                          <Slider
+                            id={`height-${furniture.id}`}
+                            min={constants.furnitureDimensionsMinimum * 100}
+                            max={constants.furnitureDimensionsMaximum * 100}
+                            step={1}
+                            value={[furniture.dimensions.height * 100]}
+                            onValueChange={(value) => updateFurnitureDimensions(furniture.id, { height: value[0]/100 })}
+                          />
                         </div>
-                      </div>
-                      <Slider
-                        id={`depth-${furniture.id}`}
-                        min={constants.furnitureDimensionsMinimum * 100}
-                        max={constants.furnitureDimensionsMaximum * 100}
-                        step={1}
-                        value={[furniture.dimensions.depth * 100]}
-                        onValueChange={(value) => updateFurnitureDimensions(furniture.id, { depth: value[0]/100 })}
-                      />
-                    </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <Label htmlFor={`depth-${furniture.id}`} className="text-s">
+                              奥行き: {Math.round(furniture.dimensions.depth* 100)} cm
+                            </Label>
+                            <div className="flex gap-1">                              
+                              <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => updateFurnitureDimensions(
+                                furniture.id, 
+                                { depth: Math.max(furniture.dimensions.depth - constants.furnitureDimensionChangeValue, constants.furnitureDimensionsMinimum ) })}>
+                                - {constants.furnitureDimensionChangeValue * 100} cm
+                              </Button>
+                              <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => updateFurnitureDimensions(
+                                furniture.id, 
+                                { depth: Math.min(furniture.dimensions.depth + constants.furnitureDimensionChangeValue, constants.furnitureDimensionsMaximum ) })
+                                }>
+                                + {constants.furnitureDimensionChangeValue * 100} cm
+                              </Button>
+                            </div>
+                          </div>
+                          <Slider
+                            id={`depth-${furniture.id}`}
+                            min={constants.furnitureDimensionsMinimum * 100}
+                            max={constants.furnitureDimensionsMaximum * 100}
+                            step={1}
+                            value={[furniture.dimensions.depth * 100]}
+                            onValueChange={(value) => updateFurnitureDimensions(furniture.id, { depth: value[0]/100 })}
+                          />
+                        </div>
+                      </>
+                    )}
 
                     <div className="space-y-2">
                       <div className="flex justify-between">
@@ -1346,8 +1415,7 @@ function HandleFurnitureSection({furnitureList, expandedFurnitureId, attachTrans
                           updateFurnitureRotation(furniture.id, { y: (value[0] * Math.PI) / 180 }) // 度 -> ラジアン に変換して保存
                         }
                       />
-                    </div>
-                    
+                    </div>                    
                   </div>
                 </div>
               )}

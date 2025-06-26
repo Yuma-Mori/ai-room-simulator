@@ -2,11 +2,13 @@ export const furnitureDimensionChangeValue = 0.1
 export const furnitureDimensionsMaximum = 3
 export const furnitureDimensionsMinimum = 0.05
 
+export const HomePageTitle = "Hack FURNITURE"
+
 export const CameraAnalysisApiUrl = "https://detect-room-info-404451730547.asia-northeast1.run.app"
 export const AIChatUrl = "https://advise-best-buy-404451730547.asia-northeast1.run.app"
 export const AISearchUrl = "https://search-best-furniture-404451730547.asia-northeast1.run.app"
 
-export const cdnBaseUrl = "http://34.49.84.80"
+export const cdnBaseUrl = "https://room-assistant.app"
 export const wallPaperPath = cdnBaseUrl + "/simulator/textures/wallpaper.png"
 export const flooringPath = cdnBaseUrl + "/simulator/textures/flooring.png"
 

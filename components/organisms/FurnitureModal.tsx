@@ -12,10 +12,10 @@ const FurnitureModal: React.FC<ModalProps> = ({ isOpen, onClose, onSelect }) => 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-lg p-6 w-4/5 max-w-2xl">
+    <div className="fixed inset-0 bg-black/30 flex lg:items-center justify-center z-50 overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-lg p-6 w-4/5 max-w-2xl max-h-screen overflow-y-auto">
         <h3 className="text-lg font-semibold mb-4">家具を選択してください</h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid lg:grid-cols-2 gap-4">
           {furnitureCatalog.map((furniture, index) => (
             <div
               key={index}

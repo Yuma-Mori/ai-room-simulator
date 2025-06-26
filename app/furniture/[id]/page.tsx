@@ -132,7 +132,7 @@ export default function FurnitureDetail() {
                   href={`/room?itemId=${furniture.id}`}
                   className="block bg-orange-100 w-4/5 py-4 px-6 border border-gray-300 rounded-lg font-medium text-gray-900 text-center hover:bg-gray-50 transition-colors"
                 >
-                  3Dシミュレータで試す
+                  お部屋シミュレータで試す
                 </Link>
               </div>
               <div className="grid grid-cols-3 gap-4">
@@ -166,6 +166,9 @@ export default function FurnitureDetail() {
                     ? "bg-gray-900 text-white hover:bg-gray-800"
                     : "bg-gray-200 text-gray-500 cursor-not-allowed"
                 }`}
+                onClick={() => {
+                  alert("この機能は実装中です！");
+                }}
               >
                 {furniture.stock ? "カートに追加" : "売り切れ"}
               </button>

@@ -18,11 +18,11 @@ export default function Home() {
       <section className="bg-gradient-to-b from-gray-50 to-white py-16">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl md:text-5xl font-light text-gray-900 mb-6 tracking-wide">
-            上質な暮らしを<br />
-            <span className="text-gray-600">デザインする</span>
+            テクノロジーの力で<br />
+            快適なお買いもの体験を
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            洗練されたデザインと機能性を兼ね備えた家具で、あなたの空間を特別な場所に変えませんか。
+            あなたの部屋を理解し、最適な家具を提案します。
           </p>
         </div>
       </section>

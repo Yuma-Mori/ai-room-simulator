@@ -74,12 +74,16 @@ const AISearchModal: React.FC<AISearchModalProps> = ({
 
       setResult(data); // product: { id, name, imageUrl, width, height, depth, modelUrl, price }
       setLoading(false);
+      setAPIFailed(false);
     } catch (error) {
       console.error("AI検索エラー:", error);
       setLoading(false);
       setResult(null);
+      setAPIFailed(true);
     }
   };
+  const [APIFailed, setAPIFailed] = useState(false);
+
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -131,7 +135,15 @@ const AISearchModal: React.FC<AISearchModalProps> = ({
                 </div>
               </div>
             </div>
-          )}          
+          )}  
+          {!result && !loading && APIFailed && (
+            <div className="text-sm text-red-600 text-center mb-4">
+              商品検索に失敗しました。再度お試しください。
+            </div>
+          )}
+          {!result && !loading && !APIFailed && (
+            <div className="text-sm text-gray-500 text-center">このお部屋に最適な商品を提案します。</div>
+          )}        
         </div>
       </div>
     </Dialog>

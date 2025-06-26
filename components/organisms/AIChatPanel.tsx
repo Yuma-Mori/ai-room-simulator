@@ -37,7 +37,7 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({ onClose, getCanvasImage, getR
         headers: { "Content-Type": "application/json" },
       });
       const data = await res.json();
-      setMessages((prev) => [...prev, { role: "ai", text: data.reply }]);
+      setMessages((prev) => [...prev, { role: "ai", text: data.reply.replace(/\*/g, '') }]);
       setInput("");
       setLoading(false);
     } catch (error) {
@@ -63,7 +63,12 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({ onClose, getCanvasImage, getR
           <div key={i} className={msg.role === "user" ? "text-right" : "text-left"}>
             {msg.image && <img src={msg.image} alt="canvas" className="inline-block w-32 h-24 object-cover rounded mb-1" />}
             <div className={`inline-block px-3 py-2 rounded ${msg.role === "user" ? "bg-blue-100" : "bg-gray-100"}`}>
-              {msg.text}
+              {msg.text.split('\n').map((line, idx) => (
+                <span key={idx}>
+                  {line}
+                  {idx !== msg.text.split('\n').length - 1 && <br />}
+                </span>
+              ))}
             </div>
           </div>
         ))}
@@ -77,7 +82,7 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({ onClose, getCanvasImage, getR
           onKeyDown={e => e.key === "Enter" && sendMessage()}
           placeholder="メッセージを入力"
         />
-        <button className="bg-blue-500 text-white px-4 py-2 rounded" onClick={sendMessage} disabled={loading}>
+        <button className="bg-blue-500 text-white px-4 py-2 rounded" onClick={sendMessage} disabled={loading} style={{ opacity: loading ? 0.5 : 1 }}>
           送信
         </button>
       </div>
