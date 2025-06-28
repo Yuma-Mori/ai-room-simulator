@@ -2,19 +2,23 @@
 'use client';
 import { useState, useEffect, useRef } from "react";
 import * as THREE from "three";
+
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
+import { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
+
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { Trash2, ChevronDown, ChevronUp } from "lucide-react"
 import { Slider } from "@/components/ui/slider"
-import { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
+
+import { Trash2, ChevronDown, ChevronUp } from "lucide-react"
 import { Eye, EyeOff, RotateCcw, RotateCw, HelpCircle, Camera } from "lucide-react"
+
 import { useSearchParams } from 'next/navigation';
 import Link from "next/link";
+import Image from "next/image";
 
-import Header from "@/components/organisms/Header";
 import FurnitureModal from "@/components/organisms/FurnitureModal";
 import HelpModal from "@/components/molecules/HelpModal";
 import PhotographModal from "@/components/organisms/PhotographModal";
@@ -1096,18 +1100,17 @@ const SimulateRoomArrangement: React.FC = () => {
         getFurniture={() => furnitureListRef.current.map(({ mesh, color, rotation, ...rest }) => rest)}
         onProductSelect={addProductToRoom}
       />
+
+      {/* AI商品検索ボタン */}
       <button
-          className="fixed bottom-40 right-6 z-50 bg-pink-500 text-white rounded-full shadow-lg w-12 h-12 flex items-center justify-center hover:bg-pink-600"
+          className="fixed bottom-40 right-6 z-50 bg-pink-300 text-white rounded-full shadow-lg w-12 h-12 flex items-center justify-center hover:bg-pink-600"
           onClick={() => setIsAISearchOpen(true)}
           aria-label="AI商品検索"
           type="button"
         >
-          <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="2" />
-            <path stroke="white" strokeWidth="2" strokeLinecap="round" d="M8 12h8" />
-            <path stroke="white" strokeWidth="2" strokeLinecap="round" d="M12 8v8" />
-          </svg>
-      </button>      
+          {/* エリアいっぱいに画像を表示 */}
+          <Image src="icons/AISearch48px.png" alt="AI商品検索" fill style={{objectFit: "contain"}} />
+      </button>
     </div>
   )
 }

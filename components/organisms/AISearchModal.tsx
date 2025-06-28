@@ -110,7 +110,7 @@ const AISearchModal: React.FC<AISearchModalProps> = ({
           {result && (
             <div className="border-t pt-4">
               <div className="flex flex-col items-center">
-                <img src={`${cdnBaseUrl}/products/${result.id}/product.png`} alt={result.name} className="w-32 h-32 object-contain mb-2" />
+                <img src={`${cdnBaseUrl}/products/${result.id}/product.jpg`} alt={result.name} className="w-32 h-32 object-contain mb-2" />
                 <div className="font-bold">{result.name}</div>
                 {result.price && <div className="text-blue-600 font-semibold">¥{result.price.toLocaleString()}</div>}
                 <div className="text-xs text-gray-500 mb-2">
