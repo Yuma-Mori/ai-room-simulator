@@ -52,7 +52,6 @@ function FurnitureGrid() {
         const res = await fetch('https://test-func-404451730547.asia-northeast1.run.app');
         if (!res.ok) throw new Error('Fetch failed');
         const json = await res.json();
-        console.log('Fetched furniture data:', json);
         setFurnitureList(json);
       } catch (error) {
         console.error('Error fetching data:', error);

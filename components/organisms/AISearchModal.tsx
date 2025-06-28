@@ -5,12 +5,10 @@ import { Button } from "@/components/ui/button";
 
 import {cdnBaseUrl, AISearchUrl} from "@/constants/roomSimulatorConstants";
 
-const CATEGORY_LIST = [
-  { value: "bed", label: "ベッド" },
-  { value: "sofa", label: "ソファ" },
+const CATEGORY_LIST = [  
   { value: "table", label: "テーブル" },
   { value: "chair", label: "チェア" },
-  // 必要に応じて追加
+  { value: "bed", label: "ベッド" },
 ];
 
 type AISearchModalProps = {
@@ -56,9 +54,7 @@ const AISearchModal: React.FC<AISearchModalProps> = ({
   const handleSearch = async () => {
     setLoading(true);
     setResult(null);
-    // APIリクエスト例
     try {
-      console.log("category:", category);
       const res = await fetch(AISearchUrl, {
         method: "POST",
         body: JSON.stringify({
@@ -72,7 +68,7 @@ const AISearchModal: React.FC<AISearchModalProps> = ({
       const data = await res.json();
       console.log("AI検索結果:", data);
 
-      setResult(data); // product: { id, name, imageUrl, width, height, depth, modelUrl, price }
+      setResult(data); 
       setLoading(false);
       setAPIFailed(false);
     } catch (error) {
@@ -138,7 +134,8 @@ const AISearchModal: React.FC<AISearchModalProps> = ({
           )}  
           {!result && !loading && APIFailed && (
             <div className="text-sm text-red-600 text-center mb-4">
-              商品検索に失敗しました。再度お試しください。
+              現在のカタログからは、お部屋に合う商品が見つかりませんでした。<br />
+              よろしければ別のカテゴリを選択して再度お試しください。
             </div>
           )}
         </div>

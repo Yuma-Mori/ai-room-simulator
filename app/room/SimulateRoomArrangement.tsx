@@ -125,7 +125,6 @@ const SimulateRoomArrangement: React.FC = () => {
                     };
 
                     // シーンに追加
-                    console.log(`"${data.name}" のモデルを読み込みました。`, furnitureInfo);
                     sceneRef.current?.add(model);
                     setFurnitureList((prevFurnitureList) => [...prevFurnitureList, furnitureInfo]);
                     resolve(furnitureInfo);
@@ -327,50 +326,6 @@ const SimulateRoomArrangement: React.FC = () => {
     };
     loadData();
 
-    // パラメータにidがある場合は、その3Dモデルを追加する
-    const loadFurnitureById = async (itemId: string) => {
-      try {
-        const res = await fetch(`https://search-product-by-id-404451730547.asia-northeast1.run.app/${itemId}`);
-        if (!res.ok) throw new Error('Fetch failed');
-        const data = await res.json();
-        const loader = new GLTFLoader();
-        loader.load(`${constants.cdnBaseUrl}/products/${itemId}/model.glb`,
-          (gltf: GLTF) => {
-            const model = gltf.scene.children[0] as THREE.Mesh;
-            model.scale.set(data.width, data.height, data.depth);
-            model.position.set(data.width, data.height/2, data.depth);
-            const colorHex = Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0")              
-
-            // 家具情報を作成
-            const furnitureInfo: furnitureInfo = {
-              id: `furniture-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-              label: data.name,
-              color: `#${colorHex}`,
-              position: { x:data.width, y:data.height, z:data.depth },
-              dimensions: { width:data.width, height:data.height, depth:data.depth },
-              rotation: { x: 0, y: 0, z: 0 }, 
-              mesh: model,
-              productId: data.id, // 商品IDを追加
-            };
-
-            // シーンに追加
-            console.log(`"${data.name}" のモデルを読み込みました。`, furnitureInfo);
-            sceneRef.current?.add(model);
-            setFurnitureList((prevFurnitureList) => [...prevFurnitureList, furnitureInfo]);
-        },
-          undefined,
-          (error) => {
-            console.error(`"${data.name}" のモデル読み込み中にエラーが発生しました:`, error);
-          }
-        );
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };    
-    if (itemId) {
-      loadFurnitureById(itemId);
-    }
-
     // トランスフォームコントロール
     const transformControls = new TransformControls(cameraRef.current, canvasRef.current);    
     transformControlsRef.current = transformControls
@@ -434,6 +389,52 @@ const SimulateRoomArrangement: React.FC = () => {
     }
     canvasRef.current.addEventListener('dblclick', ()=>{detachTransformControls()})
 
+    // パラメータにidがある場合は、その3Dモデルを追加する
+    const loadFurnitureById = async (itemId: string) => {
+      try {
+        const res = await fetch(`https://search-product-by-id-404451730547.asia-northeast1.run.app/${itemId}`);
+        if (!res.ok) throw new Error('Fetch failed');
+        const data = await res.json();
+        const loader = new GLTFLoader();
+        loader.load(`${constants.cdnBaseUrl}/products/${itemId}/model.glb`,
+          (gltf: GLTF) => {
+            const model = gltf.scene.children[0] as THREE.Mesh;
+            model.scale.set(data.width, data.height, data.depth);
+            model.position.set(data.width, data.height/2, data.depth);
+            const colorHex = Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0")              
+
+            // 家具情報を作成
+            const furnitureInfo: furnitureInfo = {
+              id: `furniture-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              label: data.name,
+              color: `#${colorHex}`,
+              position: { x:data.width, y:data.height, z:data.depth },
+              dimensions: { width:data.width, height:data.height, depth:data.depth },
+              rotation: { x: 0, y: 0, z: 0 }, 
+              mesh: model,
+              productId: data.id, // 商品IDを追加
+            };
+
+            // シーンに追加
+            console.log(`"${data.name}" のモデルを読み込みました。`, furnitureInfo);
+            sceneRef.current?.add(model);
+            setFurnitureList((prevFurnitureList) => [furnitureInfo, ...prevFurnitureList]);
+            transformControlsRef.current?.attach(model);
+        },
+          undefined,
+          (error) => {
+            console.error(`"${data.name}" のモデル読み込み中にエラーが発生しました:`, error);
+          }
+        );
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    if (itemId) {
+      loadFurnitureById(itemId);
+    }
+
+
     // 座標変更時に壁抜けチェック    
     const handleTransformChange = () => {
       if (!transformControlsRef.current || !(transformControlsRef.current.mode === 'translate')) return
@@ -446,7 +447,6 @@ const SimulateRoomArrangement: React.FC = () => {
       // 座標が変更されてない場合、または、壁からはみ出ていない場合は何もしない
       // rotationも考慮して、x, y, zの値を計算
       const rotation = attachedObject.rotation;
-      const position = attachedObject.position;
       const dimensions = targetObject.dimensions;
 
       const actualWidthHalf = dimensions.width/2 *Math.abs(Math.cos(rotation.y)) + dimensions.depth/2 * Math.abs(Math.sin(rotation.y));
@@ -646,7 +646,6 @@ const SimulateRoomArrangement: React.FC = () => {
     // GLTFLoaderを使用してGLBモデルを読み込む
     const loader = new GLTFLoader();
     loader.load(`/models/${furniture.model}`, (gltf:GLTF) => {
-      console.log("gltf", gltf)
       const model = gltf.scene.children[0] as THREE.Mesh;
       model.position.set(x, y, z)
       model.scale.set(width, height, depth)
@@ -828,7 +827,6 @@ const SimulateRoomArrangement: React.FC = () => {
   useEffect(() => {
     furnitureListRef.current = furnitureList;    
     if (furnitureList.length > 0) {
-      console.log("saving furnitureList", furnitureList)
       saveFurnitureToLocalStorage(furnitureList);
     }
   }, [furnitureList]);
@@ -865,9 +863,7 @@ const SimulateRoomArrangement: React.FC = () => {
       }
     if (apiData.furnitureData) {
       // 家具を追加
-      for (const f of apiData.furnitureData) {
-        console.log("Adding furniture from API:", f.name);
-        
+      for (const f of apiData.furnitureData) {       
         const furniture = constants.furnitureCatalog.find((item) => item.name_en === f.name);
         if (!furniture) {
           console.error(`"${f.name}"`);
@@ -880,7 +876,6 @@ const SimulateRoomArrangement: React.FC = () => {
         // GLTFLoaderを使用してGLBモデルを読み込む
         const loader = new GLTFLoader();
         loader.load(`/models/${furniture.model}`, (gltf:GLTF) => {
-          console.log("gltf", gltf)
           const model = gltf.scene.children[0] as THREE.Mesh;
           model.position.set(f.positionX, f.positionY, f.positionZ)
           model.scale.set(f.width, f.height, f.depth)

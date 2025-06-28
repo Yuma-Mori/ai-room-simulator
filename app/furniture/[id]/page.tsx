@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-// import { fetchFurnitureById } from "@/lib/api";
 import { Furniture } from "@/types/furniture";
 import * as constants from "@/constants/roomSimulatorConstants";
 
@@ -25,7 +24,6 @@ export default function FurnitureDetail() {
         const res = await fetch(`https://search-product-by-id-404451730547.asia-northeast1.run.app/${params.id}`);
         if (!res.ok) throw new Error('Fetch failed');
         const json = await res.json();
-        console.log('Fetched furniture data:', json);
         setFurniture(json)
       } catch (error) {
         console.error('Error fetching data:', error);
