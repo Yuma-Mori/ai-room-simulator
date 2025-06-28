@@ -10,7 +10,7 @@ export default function Header() {
           <Link href="/" className="text-2xl font-light text-gray-900 tracking-wide hover:text-gray-600 transition-colors">
             {HomePageTitle}
           </Link>
-          <nav className="hidden md:flex space-x-8">
+          <nav className="flex lg:space-x-8">
             <Link href="/room" className="px-4 py-2 bg-orange-200 rounded hover:bg-orange-400 transition-colors">お部屋シミュレータ</Link>
           </nav>
         </div>

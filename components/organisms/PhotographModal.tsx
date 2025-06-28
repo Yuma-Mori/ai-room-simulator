@@ -126,8 +126,8 @@ const PhotographModal: React.FC<BuildRoomProps> = ({ BuildRoom, open, onClose })
       <div className="max-w-xl lg:max-w-4xl mx-auto space-y-4 w-full relative">
         <Card>
           <CardHeader>
-            <CardTitle className="text-center text-lg">カメラ撮影 & AI解析</CardTitle>
-            <p className="text-s text-gray-500 mt-2 text-center">
+            <CardTitle className="text-center text-lg">AIカメラでセットアップ</CardTitle>
+            <p className="text-s text-gray-600 mt-2 text-center">
               ※ 画像は解析後すぐに破棄し、サーバには保存されません。
             </p>
             {onClose && (

@@ -22,7 +22,7 @@ export default function Home() {
             快適なお買いもの体験を
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            あなたの部屋を理解し、最適な家具を提案します。
+            あなたのお部屋を理解し、最適な家具を提案します。
           </p>
         </div>
       </section>
@@ -92,7 +92,7 @@ function FurnitureGrid() {
           <div className="aspect-square bg-gray-100 relative overflow-hidden">
             {furniture.id ? (
               <img
-                src={`${constants.cdnBaseUrl}/products/${furniture.id}/product.png`}
+                src={`${constants.cdnBaseUrl}/products/${furniture.id}/product.jpg`}
                 alt={furniture.name}
                 className="w-full h-full object-cover"
               />

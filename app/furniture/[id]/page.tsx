@@ -49,8 +49,15 @@ export default function FurnitureDetail() {
     // NotFoundの代わりにトップへリダイレクト
     // if (typeof window !== "undefined") router.replace("/");
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">商品が見つかりませんでした</p>
+      <div className="min-h-screen bg-white">
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
+          <h1 className="text-3xl font-light text-gray-900 mb-4">商品が見つかりませんでした</h1>
+          <Link href="/" className="text-blue-600 hover:underline">
+            ホームに戻る
+          </Link>
+        </div>
+        <Footer />        
       </div>
     );
   }
@@ -80,7 +87,7 @@ export default function FurnitureDetail() {
           <div className="aspect-square bg-gray-100 relative overflow-hidden">
             {furniture.id ? (
               <img
-                src={`${constants.cdnBaseUrl}/products/${furniture.id}/product.png`}
+                src={`${constants.cdnBaseUrl}/products/${furniture.id}/product.jpg`}
                 alt={furniture.name}
                 className="w-full h-full object-cover"
               />

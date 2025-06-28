@@ -961,7 +961,7 @@ const SimulateRoomArrangement: React.FC = () => {
   // スマホ縦画面で横画面を推奨する案内
   useEffect(() => {
     const checkOrientation = () => {
-      if (window.innerWidth < 768 && window.innerHeight > window.innerWidth) {
+      if (window.innerWidth <= 768 && window.innerHeight > window.innerWidth) {
         // スマホ縦画面の場合のみ表示
         const id = "orientation-alert";
         if (!document.getElementById(id)) {
@@ -1023,7 +1023,7 @@ const SimulateRoomArrangement: React.FC = () => {
           type="button"
         >
           <Camera className="mr-2 h-10 w-10" />
-          AIカメラで自動セットアップ
+          AIカメラでセットアップ
         </Button>
         <AddFurnitureSection setIsModalOpen={setIsModalOpen}/> 
         <HandleFurnitureSection 
@@ -1126,7 +1126,7 @@ function RoomDimensionSection({ roomDimensions, setRoomDimensions }: RoomDimensi
   // 部屋の寸法を変更するセクション
   return (
     <div className="mb-1 lg:mb-6">
-      <h3 className="text-base lg:text-lg font-semibold mb-1 lg:mb-4">部屋の寸法</h3>
+      <h3 className="text-base lg:text-lg font-semibold mb-1 lg:mb-4">お部屋の寸法</h3>
       <div className="grid grid-cols-3 gap-4">
         <div className="p-2 lg:p-4 bg-white shadow rounded">
           <Label htmlFor="room-width" className="block text-xs lg:text-sm font-medium text-gray-700 mb-2">
@@ -1240,8 +1240,8 @@ function HandleFurnitureSection({furnitureList, expandedFurnitureId, attachTrans
       ) : (
         <div className="space-y-3 ">
           {furnitureList.map((furniture, index) => (
-            <Card key={`${furniture.id}-${index}`} ref={(el) => {cardRefs.current[furniture.id] = el}} className={`p-3`} onClick={() => attachTransformControlsById(furniture.id)}>
-              <div className="flex justify-between items-center">
+            <Card key={`${furniture.id}-${index}`} className={`p-3`} onClick={() => attachTransformControlsById(furniture.id)}>
+              <div className="flex justify-between items-center" ref={(el) => {cardRefs.current[furniture.id] = el}}>
                 {furniture.label}{furniture.isLoadFailed && (<span className="ml-2 text-xs text-red-500">（読み込み失敗）</span>)}
                 {/* 購入ボタン */}
                 { furniture.productId && (
@@ -1328,6 +1328,34 @@ function HandleFurnitureSection({furnitureList, expandedFurnitureId, attachTrans
                             value={[furniture.dimensions.width * 100 ]} // m -> cm に変換して表示
                             onValueChange={(value) => updateFurnitureDimensions(furniture.id, { width: value[0] /100 })} // cm -> m に変換して保存
                           />
+                        </div>                        
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <Label htmlFor={`depth-${furniture.id}`} className="text-s">
+                              奥行: {Math.round(furniture.dimensions.depth* 100)} cm
+                            </Label>
+                            <div className="flex gap-1">                              
+                              <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => updateFurnitureDimensions(
+                                furniture.id, 
+                                { depth: Math.max(furniture.dimensions.depth - constants.furnitureDimensionChangeValue, constants.furnitureDimensionsMinimum ) })}>
+                                - {constants.furnitureDimensionChangeValue * 100} cm
+                              </Button>
+                              <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => updateFurnitureDimensions(
+                                furniture.id, 
+                                { depth: Math.min(furniture.dimensions.depth + constants.furnitureDimensionChangeValue, constants.furnitureDimensionsMaximum ) })
+                                }>
+                                + {constants.furnitureDimensionChangeValue * 100} cm
+                              </Button>
+                            </div>
+                          </div>
+                          <Slider
+                            id={`depth-${furniture.id}`}
+                            min={constants.furnitureDimensionsMinimum * 100}
+                            max={constants.furnitureDimensionsMaximum * 100}
+                            step={1}
+                            value={[furniture.dimensions.depth * 100]}
+                            onValueChange={(value) => updateFurnitureDimensions(furniture.id, { depth: value[0]/100 })}
+                          />
                         </div>
                         <div className="space-y-2">
                           <div className="flex justify-between">
@@ -1356,34 +1384,6 @@ function HandleFurnitureSection({furnitureList, expandedFurnitureId, attachTrans
                             step={1}
                             value={[furniture.dimensions.height * 100]}
                             onValueChange={(value) => updateFurnitureDimensions(furniture.id, { height: value[0]/100 })}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <Label htmlFor={`depth-${furniture.id}`} className="text-s">
-                              奥行き: {Math.round(furniture.dimensions.depth* 100)} cm
-                            </Label>
-                            <div className="flex gap-1">                              
-                              <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => updateFurnitureDimensions(
-                                furniture.id, 
-                                { depth: Math.max(furniture.dimensions.depth - constants.furnitureDimensionChangeValue, constants.furnitureDimensionsMinimum ) })}>
-                                - {constants.furnitureDimensionChangeValue * 100} cm
-                              </Button>
-                              <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => updateFurnitureDimensions(
-                                furniture.id, 
-                                { depth: Math.min(furniture.dimensions.depth + constants.furnitureDimensionChangeValue, constants.furnitureDimensionsMaximum ) })
-                                }>
-                                + {constants.furnitureDimensionChangeValue * 100} cm
-                              </Button>
-                            </div>
-                          </div>
-                          <Slider
-                            id={`depth-${furniture.id}`}
-                            min={constants.furnitureDimensionsMinimum * 100}
-                            max={constants.furnitureDimensionsMaximum * 100}
-                            step={1}
-                            value={[furniture.dimensions.depth * 100]}
-                            onValueChange={(value) => updateFurnitureDimensions(furniture.id, { depth: value[0]/100 })}
                           />
                         </div>
                       </>

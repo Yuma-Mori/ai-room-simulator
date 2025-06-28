@@ -94,7 +94,7 @@ const AISearchModal: React.FC<AISearchModalProps> = ({
             <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-300 hover:bg-red-600">×</button>
           </div>
           {!result && !loading && (
-            <div className="text-sm text-gray-500 text-center">このお部屋に最適な商品を提案します。</div>
+            <div className="mb-4 text-m text-center">このお部屋に最適な商品を提案します。</div>
           )}
           <div className="mb-4">
             <label className="block mb-2 font-medium">カテゴリを選択</label>
@@ -141,9 +141,6 @@ const AISearchModal: React.FC<AISearchModalProps> = ({
               商品検索に失敗しました。再度お試しください。
             </div>
           )}
-          {!result && !loading && !APIFailed && (
-            <div className="text-sm text-gray-500 text-center">このお部屋に最適な商品を提案します。</div>
-          )}        
         </div>
       </div>
     </Dialog>
