@@ -861,6 +861,7 @@ const SimulateRoomArrangement: React.FC = () => {
       depth: number;
       rotation: { x: number; y: number; z: number };
     }> }) => {
+    setFurnitureList([])
     console.log("Building room from API data:", apiData);
     if (apiData.roomDimensions) {
         setRoomDimensions(apiData.roomDimensions);
@@ -1058,7 +1059,8 @@ const SimulateRoomArrangement: React.FC = () => {
         type="button"
         title={isViewCenter ? "俯瞰視点に切り替え" : "部屋の中心を見る" }
       >
-        <Eye className="w-7 h-7" />
+        {/* <Eye className="w-7 h-7" /> */}
+        <Image src="icons/switchView6.png" alt="視点切り替え" fill style={{objectFit: "contain"}} />
       </button>
       
       {/* ヘルプ */}

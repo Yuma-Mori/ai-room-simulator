@@ -2,7 +2,7 @@ export const furnitureDimensionChangeValue = 0.1
 export const furnitureDimensionsMaximum = 3
 export const furnitureDimensionsMinimum = 0.05
 
-export const HomePageTitle = "Hack FURNITURE"
+export const HomePageTitle = "G-Hack Interior"
 
 export const CameraAnalysisApiUrl = "https://detect-room-info-404451730547.asia-northeast1.run.app"
 export const AIChatUrl = "https://advise-best-buy-404451730547.asia-northeast1.run.app"
@@ -53,7 +53,13 @@ export const furnitureCatalog  = [
     "name": "テレビ", 
     "name_en": "tv",
     "model": "tv.glb",
-    "defaultScale": [0.7, 0.9, 0.3]
+    "defaultScale": [0.75, 0.5, 0.25]
+  },
+    {
+    "name": "テレビ台", 
+    "name_en": "tv_stand",
+    "model": "tv_stand.glb",
+    "defaultScale": [0.75, 0.3, 0.35]
   },
   {
     "name": "ソファ", 
