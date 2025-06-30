@@ -122,7 +122,7 @@ const PhotographModal: React.FC<BuildRoomProps> = ({ BuildRoom, open, onClose })
   };
 
   return (
-    <div className="min-h-screen max-h-screen overflow-y-auto bg-black/30 p-4 fixed inset-0 z-100 flex lg:items-center justify-center">
+    <div className="min-h-0 max-h-screen overflow-y-auto bg-black/30 p-4 fixed inset-0 z-100 flex lg:items-center justify-center overflow-y-auto">
       <div className="max-w-xl lg:max-w-4xl mx-auto space-y-4 w-full relative">
         <Card>
           <CardHeader>

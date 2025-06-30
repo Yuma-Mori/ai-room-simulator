@@ -18,7 +18,7 @@ type AIChatPanelProps = {
 };
 
 const AIChatPanel: React.FC<AIChatPanelProps> = ({ onClose, getCanvasImage, getRoomDimensions, getFurniture }) => {
-  const [messages, setMessages] = useState<{ role: "user" | "ai"; text: string; image?: string }[]>([]);
+  const [messages, setMessages] = useState<{ role: "user" | "model"; text: string; }[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesRef = useRef(messages)
@@ -26,24 +26,24 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({ onClose, getCanvasImage, getR
   const sendMessage = async () => {
     if (!input.trim()) return;
     const image_base64 = getCanvasImage();
-    setMessages((prev) => [...prev, { role: "user", text: input, image_base64 }]);
+    setMessages((prev) => [...prev, { role: "user", text: input}]);
     setLoading(true);
 
     // ここでAPIに画像とテキストを送信
     try {
       const res = await fetch( AIChatUrl, {
         method: "POST",
-        body: JSON.stringify({ text: input, image_base64, roomDimensions: getRoomDimensions(), furnitureList: getFurniture() }),
+        body: JSON.stringify({ text: [...messagesRef.current, { role: "user", text: input}] , image_base64, roomDimensions: getRoomDimensions(), furnitureList: getFurniture() }),
         headers: { "Content-Type": "application/json" },
       });
       const data = await res.json();
-      setMessages((prev) => [...prev, { role: "ai", text: data.reply.replace(/\*/g, '') }]);
+      setMessages((prev) => [...prev, { role: "model", text: data.reply.replace(/\*/g, '') }]);
       setInput("");
       setLoading(false);
     } catch (error) {
       console.error("Error sending message:", error);
       setLoading(false);
-      setMessages((prev) => [...prev, { role: "ai", text: "AIとの通信に失敗しました。" }]);
+      setMessages((prev) => [...prev, { role: "model", text: "AIとの通信に失敗しました。" }]);
     }
   };
 
@@ -61,7 +61,6 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({ onClose, getCanvasImage, getR
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((msg, i) => (
           <div key={i} className={msg.role === "user" ? "text-right" : "text-left"}>
-            {msg.image && <img src={msg.image} alt="canvas" className="inline-block w-32 h-24 object-cover rounded mb-1" />}
             <div className={`inline-block px-3 py-2 rounded ${msg.role === "user" ? "bg-blue-100" : "bg-gray-100"}`}>
               {msg.text.split('\n').map((line, idx) => (
                 <span key={idx}>
