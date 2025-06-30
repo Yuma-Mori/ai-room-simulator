@@ -1,20 +1,37 @@
 "use client";
 import * as React from "react"
+import { forwardRef } from 'react';
 
 import { cn } from "@/lib/utils"
 
-function Card({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="card"
-      className={cn(
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
-        className
-      )}
-      {...props}
-    />
-  )
-}
+// function Card({ className, ...props }: React.ComponentProps<"div">) {
+//   return (
+//     <div
+//       data-slot="card"
+//       className={cn(
+//         "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
+//         className
+//       )}
+//       {...props}
+//     />
+//   )
+// }
+
+const Card = forwardRef<HTMLDivElement, React.ComponentProps<"div">>(
+  ({ className, ...props }, ref) => {
+    return (
+      <div
+        data-slot="card"
+        ref={ref}
+        className={cn(
+          "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
+          className
+        )}
+        {...props}
+      />
+    )
+  }
+)
 
 function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (

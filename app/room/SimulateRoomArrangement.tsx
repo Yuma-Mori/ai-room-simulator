@@ -1223,7 +1223,7 @@ function HandleFurnitureSection({furnitureList, expandedFurnitureId, attachTrans
   // expandedFurnitureIdが変わった時にスクロール
   useEffect(() => {
     if (expandedFurnitureId && cardRefs.current[expandedFurnitureId]) {
-      cardRefs.current[expandedFurnitureId]?.scrollIntoView({ behavior: "smooth", block: "center" });
+      cardRefs.current[expandedFurnitureId]?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [expandedFurnitureId]);
 
@@ -1237,8 +1237,8 @@ function HandleFurnitureSection({furnitureList, expandedFurnitureId, attachTrans
       ) : (
         <div className="space-y-3 ">
           {furnitureList.map((furniture, index) => (
-            <Card key={`${furniture.id}-${index}`} className={`p-3`} onClick={() => attachTransformControlsById(furniture.id)}>
-              <div className="flex justify-between items-center" ref={(el) => {cardRefs.current[furniture.id] = el}}>
+            <Card key={`${furniture.id}-${index}`} className={`p-3`} ref={(el) => {cardRefs.current[furniture.id] = el}} onClick={() => attachTransformControlsById(furniture.id)}>
+              <div className="flex justify-between items-center" >
                 {furniture.label}{furniture.isLoadFailed && (<span className="ml-2 text-xs text-red-500">（読み込み失敗）</span>)}
                 {/* 購入ボタン */}
                 { furniture.productId && (
