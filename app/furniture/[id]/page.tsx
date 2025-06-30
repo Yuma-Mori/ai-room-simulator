@@ -134,7 +134,8 @@ export default function FurnitureDetail() {
               <div className="flex justify-between gap-3 mb-4">
                 <h2 className="text-lg font-medium text-gray-900 mb-4">サイズ</h2>
                  <Link
-                  href={`/room?itemId=${furniture.id}`}
+                  href={`/room`}
+                  onClick={()=>{sessionStorage.setItem("addingItemId",furniture.id)}}
                   className="block bg-orange-100 w-4/5 py-4 px-6 border border-gray-300 rounded-lg font-medium text-gray-900 text-center hover:bg-gray-50 transition-colors"
                 >
                   お部屋シミュレータで試す

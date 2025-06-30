@@ -15,7 +15,6 @@ import { Slider } from "@/components/ui/slider"
 import { Trash2, ChevronDown, ChevronUp } from "lucide-react"
 import { Eye, EyeOff, RotateCcw, RotateCw, HelpCircle, Camera } from "lucide-react"
 
-import { useSearchParams } from 'next/navigation';
 import Link from "next/link";
 import Image from "next/image";
 
@@ -44,10 +43,6 @@ type StorageData = Omit<furnitureInfo, 'mesh' | 'isLoadFailed'>
 const fps = 30
 
 const SimulateRoomArrangement: React.FC = () => {
-  // parameter
-  const params = useSearchParams();
-  const itemId = params.get('itemId');
-
   // Ref
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null)
@@ -434,10 +429,12 @@ const SimulateRoomArrangement: React.FC = () => {
         console.error('Error fetching data:', error);
       }
     };
-    if (itemId) {
-      loadFurnitureById(itemId);
+    
+    const addingItemId = sessionStorage.getItem("addingItemId")
+    if (addingItemId) {
+      loadFurnitureById(addingItemId);
+      sessionStorage.removeItem("addingItemId")
     }
-
 
     // 座標変更時に壁抜けチェック    
     const handleTransformChange = () => {
