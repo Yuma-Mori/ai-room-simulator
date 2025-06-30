@@ -1246,7 +1246,7 @@ function HandleFurnitureSection({furnitureList, expandedFurnitureId, attachTrans
                 {/* 購入ボタン */}
                 { furniture.productId && (
                   <Button
-                    className="w-auto px-2 bg-orange-400 text-white hover:bg-orange-500"
+                    className="w-auto px-2 bg-blue-400 text-white hover:bg-blue-500"
                     variant="ghost"
                     size="icon"
                     onClick={()=>{alert("本ハッカソンの実装はここまでです！お使いいただきありがとうございました！")}}
@@ -1389,17 +1389,18 @@ function HandleFurnitureSection({furnitureList, expandedFurnitureId, attachTrans
                       </>
                     )}
 
+                    {/* 回転の変更 */}
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <Label htmlFor={`rotation-y-${furniture.id}`} className="text-s">
                           回転: {Math.round((furniture.rotation.y * (180 / Math.PI)) * 10) / 10}°
                         </Label>
                         <div className="flex gap-1">
-                          <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => updateFurnitureRotation(furniture.id, { y: Math.max(furniture.rotation.y - Math.PI / 2, 0) })}>
+                          <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => updateFurnitureRotation(furniture.id, { y: furniture.rotation.y - Math.PI / 2 >= 0 ? furniture.rotation.y - Math.PI / 2 : furniture.rotation.y - Math.PI / 2 + 2*Math.PI })}>
                             <RotateCw className="h-3.5 w-3.5 mr-1" />
                             -90°
                           </Button>
-                          <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => updateFurnitureRotation(furniture.id, { y: Math.min(furniture.rotation.y + Math.PI / 2, 2*Math.PI) })}>
+                          <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => updateFurnitureRotation(furniture.id, { y: furniture.rotation.y + Math.PI / 2 <= 2*Math.PI ? furniture.rotation.y + Math.PI / 2 : furniture.rotation.y + Math.PI / 2 - 2*Math.PI })}>
                             <RotateCcw className="h-3.5 w-3.5 mr-1" />
                             +90°
                           </Button>
@@ -1415,7 +1416,7 @@ function HandleFurnitureSection({furnitureList, expandedFurnitureId, attachTrans
                           updateFurnitureRotation(furniture.id, { y: (value[0] * Math.PI) / 180 }) // 度 -> ラジアン に変換して保存
                         }
                       />
-                    </div>                    
+                    </div>
                   </div>
                 </div>
               )}
