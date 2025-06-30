@@ -388,7 +388,7 @@ const SimulateRoomArrangement: React.FC = () => {
     }
     canvasRef.current.addEventListener('dblclick', ()=>{detachTransformControls()})
 
-    // パラメータにidがある場合は、その3Dモデルを追加する
+    // sessionStorage にitemIdがある場合は追加する。
     const loadFurnitureById = async (itemId: string) => {
       try {
         const res = await fetch(`https://search-product-by-id-404451730547.asia-northeast1.run.app/${itemId}`);
@@ -399,7 +399,7 @@ const SimulateRoomArrangement: React.FC = () => {
           (gltf: GLTF) => {
             const model = gltf.scene.children[0] as THREE.Mesh;
             model.scale.set(data.width, data.height, data.depth);
-            model.position.set(data.width, data.height/2, data.depth);
+            model.position.set(roomDimensionsRef.current.width/2, data.height/2, roomDimensionsRef.current.depth/2);
             const colorHex = Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0")              
 
             // 家具情報を作成
@@ -639,10 +639,10 @@ const SimulateRoomArrangement: React.FC = () => {
     const height = furniture.defaultScale[1]
     const depth = furniture.defaultScale[2]
 
-    // ランダムな位置を生成
-    const x = (Math.random() + 0.5) * 2
+    // 部屋の真ん中に置く
+    const x = roomDimensionsRef.current.width/2
     const y = height/2
-    const z = (Math.random() + 0.5) * 2
+    const z = roomDimensionsRef.current.depth/2
 
     // GLTFLoaderを使用してGLBモデルを読み込む
     const loader = new GLTFLoader();
@@ -664,10 +664,10 @@ const SimulateRoomArrangement: React.FC = () => {
         mesh: model,
       };
 
-      setFurnitureList((prevFurnitureList) => [...prevFurnitureList, newFurniture])
+      setFurnitureList((prevFurnitureList) => [newFurniture, ...prevFurnitureList])
       setFurnitureVisibility((prev) => ({
-          ...prev,
-          [newFurniture.id]: true, // 追加した家具はデフォルトで可視
+        [newFurniture.id]: true, // 追加した家具はデフォルトで可視
+        ...prev,          
       }));
       setExpandedFurnitureId(newFurniture.id)
     })
