@@ -1004,12 +1004,19 @@ const SimulateRoomArrangement: React.FC = () => {
         </div>
       ) : (
       <div className="w-2/5 lg:w-1/4 p-4 bg-gray-100 text-black block h-screen overflow-y-scroll lg:overflow-y-visible">            
-        <header className=" border-b border-gray-100 top-0 z-10">
-          <div className="max-w-7xl mx-auto h-16 flex items-center justify-between">
-              <Link href="/" className="text-2xl text-gray-900 tracking-wide hover:text-gray-600 transition-colors">
-                {constants.HomePageTitle}
-              </Link>
-          </div>
+        <header className="border-b border-gray-100 top-0 z-10">
+          <Link
+            href="/"
+            className="max-w-7xl w-full mx-auto h-16 flex items-center justify-between cursor-pointer no-underline"
+            style={{ textDecoration: "none" }}
+          >
+            <span className="text-2xl text-gray-900 tracking-wide font-bold">
+              {constants.HomePageTitle}
+            </span>
+            <span className="text-xs text-gray-500 hover:text-gray-700 transition-colors" style={{ whiteSpace: "nowrap" }}>
+              ホームに戻る
+            </span>
+          </Link>
         </header>
         <RoomDimensionSection roomDimensions={roomDimensions} setRoomDimensions={setRoomDimensions}/>
         {/* AIカメラから追加するボタン */}
