@@ -114,7 +114,7 @@ const AISearchModal: React.FC<AISearchModalProps> = ({
           <div className="mb-4">
             <label className="block mb-2 font-medium">ご要望・キーワード（任意）
               <span className="block text-xs text-gray-500 mt-1">
-                いただいた要望に応じてサイズ感を考慮します。
+                いただいたご要望に応じてサイズ感を考慮します。
               </span>
             </label>
             <input
