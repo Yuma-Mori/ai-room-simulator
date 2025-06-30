@@ -39,6 +39,7 @@ const AISearchModal: React.FC<AISearchModalProps> = ({
 }) => {
   if (!open) return null;
   const [category, setCategory] = useState(CATEGORY_LIST[0].label);
+  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<null | {
     id: number;
@@ -59,6 +60,7 @@ const AISearchModal: React.FC<AISearchModalProps> = ({
         method: "POST",
         body: JSON.stringify({
           category,
+          input,
           image: getCanvasImage(),
           roomDimensions: getRoomDimensions(),
           furnitureList: getFurniture(),
@@ -82,9 +84,9 @@ const AISearchModal: React.FC<AISearchModalProps> = ({
 
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50">
-        <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+    <Dialog open={open} onOpenChange={onClose} >
+      <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 min-h-0 max-h-screen overflow-y-auto">
+        <div className="bg-white rounded-lg shadow-lg w-full max-h-[90vh] overflow-y-auto max-w-md p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold mb-4">AIで商品検索</h2>
             <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-300 hover:bg-red-600">×</button>
@@ -93,7 +95,11 @@ const AISearchModal: React.FC<AISearchModalProps> = ({
             <div className="mb-4 text-m text-center">このお部屋に最適な商品を提案します。</div>
           )}
           <div className="mb-4">
-            <label className="block mb-2 font-medium">カテゴリを選択</label>
+            <label className="block mb-2 font-medium">カテゴリを選択
+              <span className="block text-xs text-gray-500 mt-1">
+                まずは、最も取り扱いが多い「テーブル」でお試しください。
+              </span>
+            </label>
             <select
               className="w-full border rounded px-3 py-2"
               value={category}
@@ -103,6 +109,21 @@ const AISearchModal: React.FC<AISearchModalProps> = ({
                 <option key={c.label} value={c.label}>{c.label}</option>
               ))}
             </select>
+          </div>
+          {/* ユーザー入力ボックスを追加 */}
+          <div className="mb-4">
+            <label className="block mb-2 font-medium">ご要望・キーワード（任意）
+              <span className="block text-xs text-gray-500 mt-1">
+                いただいた要望に応じてサイズ感を考慮します。
+              </span>
+            </label>
+            <input
+              className="w-full border rounded px-3 py-2"
+              type="text"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              placeholder="例: ダイニングテーブル、サイドテーブル、など"
+            />
           </div>
           <Button className="w-full mb-4" onClick={handleSearch} disabled={loading}>
             {loading ? "検索中..." : "AIで検索する"}
@@ -134,8 +155,9 @@ const AISearchModal: React.FC<AISearchModalProps> = ({
           )}  
           {!result && !loading && APIFailed && (
             <div className="text-sm text-red-600 text-center mb-4">
+              大変申し訳ありません。<br />
               現在のカタログからは、お部屋に合う商品が見つかりませんでした。<br />
-              よろしければ別のカテゴリを選択して再度お試しください。
+              再度検索するか、別のカテゴリでお試しください。
             </div>
           )}
         </div>
