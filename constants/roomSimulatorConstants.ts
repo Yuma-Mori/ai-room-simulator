@@ -8,7 +8,7 @@ export const CameraAnalysisApiUrl = "https://detect-room-info-404451730547.asia-
 export const AIChatUrl = "https://advise-best-buy-404451730547.asia-northeast1.run.app"
 export const AISearchUrl = "https://search-best-furniture-404451730547.asia-northeast1.run.app"
 
-export const cdnBaseUrl = "https://room-assistant.app"
+export const cdnBaseUrl = "https://storage.googleapis.com/room-simulator-bucket"
 export const wallPaperPath = cdnBaseUrl + "/simulator/textures/wallpaper.png"
 export const flooringPath = cdnBaseUrl + "/simulator/textures/flooring.png"
 
